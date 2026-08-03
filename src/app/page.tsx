@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import PricesBoard from "@/components/PricesBoard";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -8,9 +9,7 @@ export default function Home() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <PricesBoard />
       </main>
-      <footer className="safe-bottom px-4 pb-4 pt-2 text-center text-xs text-muted">
-        DeepInk Group - Gheymat
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -87,6 +87,11 @@ html.standalone .glass {
   box-shadow: 0 8px 30px rgba(31, 30, 60, 0.08);
 }
 
+/* Web-only chrome (footer, external links) has no place in an installed app. */
+html.standalone .hide-standalone {
+  display: none !important;
+}
+
 @media (prefers-color-scheme: dark) {
   html.standalone {
     --muted: rgba(255, 255, 255, 0.68);

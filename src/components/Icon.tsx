@@ -25,6 +25,17 @@ export default function Icon({ meta }: { meta: SymbolMeta }) {
     );
   }
 
+  if (meta.iconFile) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/crypto/${meta.iconFile}.svg`}
+        alt={meta.name}
+        className="block h-10 w-10 shrink-0 rounded-full ring-1 ring-border"
+      />
+    );
+  }
+
   return (
     <span
       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[0.8rem] font-bold text-white shadow-sm"

@@ -1,189 +1,216 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gheymat — Live Currency, Gold &amp; Crypto Prices</title>
-<meta name="description" content="Gheymat is a minimal, glassy Next.js PWA showing live currency, gold, coin and crypto prices in Toman, sourced from baha24." />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Gheymat | Live Currency, Gold & Crypto Prices</title>
+<meta name="description" content="Live prices for USD, EUR, gold, coins and crypto in Toman, sourced from baha24." />
 <style>
   :root {
-    --bg-a: #fdf3e7;
-    --bg-b: #eef1fb;
-    --bg-c: #e9f7f1;
-    --surface: rgba(255,255,255,0.6);
-    --border: rgba(255,255,255,0.7);
-    --fg: #16181c;
-    --muted: rgba(22,24,28,0.62);
-    --code-bg: rgba(22,24,28,0.05);
+    --background: #f7f5f0;
+    --surface: #ffffff;
+    --foreground: #16181c;
+    --muted: #6b7078;
+    --border: rgba(22, 24, 28, 0.08);
+    --up: #16a34a;
+    --down: #e11d3f;
+    --gold: #B8860B;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-a: #0b0d10;
-      --bg-b: #171335;
-      --bg-c: #06232f;
-      --surface: rgba(38,38,48,0.55);
-      --border: rgba(255,255,255,0.14);
-      --fg: #f3f4f6;
-      --muted: rgba(255,255,255,0.68);
-      --code-bg: rgba(255,255,255,0.06);
+      --background: #0b0d10;
+      --surface: #14171c;
+      --foreground: #f3f4f6;
+      --muted: #8b8f98;
+      --border: rgba(255, 255, 255, 0.08);
+      --up: #34d766;
+      --down: #ff5470;
+      --gold: #e8b93f;
     }
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 50%, var(--bg-c) 100%);
-    background-attachment: fixed;
-    color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
-    line-height: 1.5;
+  html, body { background: var(--background); color: var(--foreground); margin: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  .num { direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+  header {
+    position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--background) 90%, transparent); backdrop-filter: blur(12px);
   }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 4rem 1.5rem 3rem; }
-  .hero { text-align: center; margin-bottom: 3rem; }
-  .hero svg { width: 84px; height: 84px; }
-  .hero h1 { font-size: 2.5rem; margin: 1rem 0 0.5rem; letter-spacing: -0.02em; }
-  .hero p { color: var(--muted); font-size: 1.05rem; max-width: 560px; margin: 0 auto; }
-  .badges { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
-  .badge {
-    font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: 999px;
-    background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(12px);
+  header .inner { max-width: 64rem; margin: 0 auto; display: flex; align-items: center; gap: 0.5rem; height: 3.5rem; padding: 0 1rem; }
+  header .brand-text { line-height: 1.2; }
+  header .brand-text .name { font-size: 0.9rem; font-weight: 700; }
+  header .brand-text .tag { font-size: 0.65rem; color: var(--muted); }
+  main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem; }
+  .filters {
+    position: sticky; top: 3.5rem; z-index: 10; display: flex; gap: 0.5rem; overflow-x: auto;
+    border: 1px solid var(--border); border-radius: 1rem; background: var(--background); padding: 0.75rem;
+    margin-bottom: 1.5rem;
   }
-  .glass {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(31,30,60,0.08);
+  .filters button {
+    flex-shrink: 0; border: none; cursor: pointer; border-radius: 999px; padding: 0.4rem 1rem;
+    font-size: 0.875rem; font-weight: 500; background: var(--surface); color: var(--muted);
+    font-family: inherit;
   }
-  section { margin-bottom: 3rem; }
-  h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 1rem; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-  .card { padding: 1.25rem; }
-  .card .icon { font-size: 1.5rem; margin-bottom: 0.5rem; display: block; }
-  .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-  .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
-  .code-list { display: flex; flex-direction: column; gap: 0.6rem; }
-  .code-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    padding: 0.9rem 1.1rem; text-decoration: none; color: inherit;
+  .filters button.active { background: var(--foreground); color: var(--background); }
+  section.cat { margin-bottom: 2rem; }
+  section.cat h2 { font-size: 0.875rem; font-weight: 600; color: var(--muted); margin: 0 0 0.75rem; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .card {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 1rem; padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   }
-  .code-row:hover { border-color: rgba(59, 91, 219, 0.5); }
-  .code-row code {
-    background: var(--code-bg); padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.8rem;
+  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+  .icon { width: 2.5rem; height: 2.5rem; border-radius: 999px; flex-shrink: 0; }
+  .icon.flag, .icon.coin { object-fit: cover; border: 1px solid var(--border); }
+  .icon.glyph {
+    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;
+    font-size: 0.8rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   }
-  .code-row span.desc { color: var(--muted); font-size: 0.85rem; text-align: right; }
-  .cta { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.2rem; border-radius: 999px;
-    text-decoration: none; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border);
-  }
-  .btn.primary { background: var(--fg); color: var(--bg-a); border-color: transparent; }
-  .btn.secondary { background: var(--surface); color: var(--fg); backdrop-filter: blur(12px); }
-  footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 4rem; }
-  footer a { color: inherit; }
+  .meta { text-align: right; min-width: 0; }
+  .meta .name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta .symbol { font-size: 0.75rem; color: var(--muted); }
+  .delta { margin-top: 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .delta.up { color: var(--up); }
+  .delta.down { color: var(--down); }
+  .delta.flat { color: var(--muted); }
+  .price { font-size: 1.25rem; font-weight: 800; }
+  @media (min-width: 640px) { .price { font-size: 1.5rem; } }
+  .price .unit { margin-left: 0.35rem; font-size: 0.75rem; font-weight: 400; color: var(--muted); }
+  footer { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem 2rem; text-align: center; font-size: 0.75rem; color: var(--muted); }
+  footer .social { display: flex; gap: 0.75rem; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--foreground); }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <header>
+    <div class="inner">
+      <svg width="32" height="32" viewBox="0 0 100 100" aria-hidden>
         <defs>
-          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#EF4136" />
-            <stop offset="25%" stop-color="#F7941D" />
-            <stop offset="50%" stop-color="#FFD200" />
-            <stop offset="72%" stop-color="#39B54A" />
+          <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EF4136" /><stop offset="25%" stop-color="#F7941D" />
+            <stop offset="50%" stop-color="#FFD200" /><stop offset="72%" stop-color="#39B54A" />
             <stop offset="100%" stop-color="#2E9DF7" />
           </linearGradient>
         </defs>
-        <path d="M 11.94 67.75 A 42 42 0 1 1 32.25 88.06 L 37.32 77.19 A 30 30 0 1 0 22.81 62.68 Z" fill="url(#grad)" />
-        <text x="50" y="67" font-size="48" font-weight="800" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="url(#grad)">$</text>
+        <path d="M 11.94 67.75 A 42 42 0 1 1 32.25 88.06 L 37.32 77.19 A 30 30 0 1 0 22.81 62.68 Z" fill="url(#brandGrad)" />
+        <text x="50" y="67" font-size="48" font-weight="800" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="url(#brandGrad)">$</text>
       </svg>
-      <h1>Gheymat</h1>
-      <p>A minimal, glassy PWA showing live currency, gold, coin and crypto prices in Toman &mdash; built with Next.js and sourced from <a href="https://baha24.com" target="_blank" rel="noopener">baha24.com</a>.</p>
-      <div class="badges">
-        <span class="badge">Next.js 16</span>
-        <span class="badge">React 19</span>
-        <span class="badge">TypeScript</span>
-        <span class="badge">Tailwind CSS v4</span>
-        <span class="badge">PWA / iOS glass UI</span>
-      </div>
-      <div class="cta">
-        <a class="btn primary" href="https://github.com/DeepInkGroup/gheymat">View source on GitHub</a>
-        <a class="btn secondary" href="https://github.com/DeepInkGroup/gheymat#readme">Read the docs</a>
+      <div class="brand-text">
+        <div class="name">Gheymat</div>
+        <div class="tag">Live currency, gold &amp; crypto prices</div>
       </div>
     </div>
+  </header>
 
-    <section>
-      <h2>What it does</h2>
-      <div class="grid">
-        <div class="glass card">
-          <span class="icon">💱</span>
-          <h3>28 live instruments</h3>
-          <p>Major currencies, gold &amp; coins (Emami, Azadi, Mithqal), and top crypto — all in Toman.</p>
-        </div>
-        <div class="glass card">
-          <span class="icon">🛡️</span>
-          <h3>Resilient data layer</h3>
-          <p>Server-side proxy caches baha24's response and falls back gracefully on rate limits or errors.</p>
-        </div>
-        <div class="glass card">
-          <span class="icon">🏳️</span>
-          <h3>Real flag icons</h3>
-          <p>Bundled SVG flags (not emoji) for consistent rendering across Windows, iOS, and every browser.</p>
-        </div>
-        <div class="glass card">
-          <span class="icon">📱</span>
-          <h3>Installable on iPhone</h3>
-          <p>Full PWA manifest, offline service worker, and an automatic frosted-glass UI when launched standalone.</p>
-        </div>
-        <div class="glass card">
-          <span class="icon">🌗</span>
-          <h3>Light &amp; dark aware</h3>
-          <p>Every surface, gradient and contrast ratio is tuned for both color schemes.</p>
-        </div>
-        <div class="glass card">
-          <span class="icon">📐</span>
-          <h3>Fully responsive</h3>
-          <p>1 / 2 / 3-column layouts across phones, tablets and desktops with zero horizontal overflow.</p>
-        </div>
-      </div>
-    </section>
+  <main>
+    <div class="filters" id="filters">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="currency">Currency</button>
+      <button data-filter="gold">Gold &amp; Coins</button>
+      <button data-filter="crypto">Crypto</button>
+    </div>
+    <div id="board"></div>
+  </main>
 
-    <section>
-      <h2>Code sections</h2>
-      <div class="code-list">
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/tree/main/src/app">
-          <span><code>src/app</code> &mdash; routes, layout, PWA metadata &amp; icons</span>
-          <span class="desc">App Router</span>
-        </a>
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/tree/main/src/app/api/prices">
-          <span><code>src/app/api/prices</code> &mdash; server-side price proxy</span>
-          <span class="desc">API route</span>
-        </a>
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/tree/main/src/components">
-          <span><code>src/components</code> &mdash; UI: cards, header, icons, PWA helpers</span>
-          <span class="desc">Components</span>
-        </a>
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/tree/main/src/lib">
-          <span><code>src/lib</code> &mdash; baha24 client, symbol metadata, formatting</span>
-          <span class="desc">Data layer</span>
-        </a>
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/blob/main/public/sw.js">
-          <span><code>public/sw.js</code> &mdash; offline service worker</span>
-          <span class="desc">PWA</span>
-        </a>
-        <a class="glass code-row" href="https://github.com/DeepInkGroup/gheymat/blob/main/src/app/globals.css">
-          <span><code>src/app/globals.css</code> &mdash; design tokens &amp; glassmorphism</span>
-          <span class="desc">Styling</span>
-        </a>
-      </div>
-    </section>
+  <footer>
+    <div class="social">
+      <a href="https://github.com/DeepInkGroup" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.87 10.93c.58.1.79-.25.79-.56v-2.17c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.08-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.8 1.19 1.82 1.19 3.08 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.07.78 2.15v3.19c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+      </a>
+      <a href="https://t.me/DeepInkGroup" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.05 2.1 19.6 21.16c-.26 1.15-.94 1.44-1.9.9l-5.26-3.88-2.54 2.45c-.28.28-.52.52-1.06.52l.38-5.4L19 6.1c.44-.39-.1-.6-.68-.22L6.7 13.2l-5.3-1.66c-1.15-.36-1.17-1.15.24-1.7L21.6.87c.96-.36 1.8.22 1.45 1.23Z"/></svg>
+      </a>
+    </div>
+    <div>DeepInk Group - Gheymat</div>
+    <div><a href="showcase/">About this project &amp; source code &rarr;</a></div>
+  </footer>
 
-    <footer>
-      DeepInk Group &mdash; Gheymat · Data by <a href="https://baha24.com" target="_blank" rel="noopener">baha24.com</a> · <a href="https://github.com/DeepInkGroup/gheymat">Source on GitHub</a>
-    </footer>
-  </div>
+<script>
+  var CATEGORY_LABELS = { currency: "Currency", gold: "Gold & Coins", crypto: "Crypto" };
+  var CATEGORIES = ["currency", "gold", "crypto"];
+
+  var ITEMS = [
+    { symbol: "USD", name: "US Dollar", category: "currency", unit: "Toman", price: "192,700", delta: "0", dir: "flat", icon: { type: "flag", file: "US" } },
+    { symbol: "EUR", name: "Euro", category: "currency", unit: "Toman", price: "221,720", delta: "0", dir: "flat", icon: { type: "flag", file: "EU" } },
+    { symbol: "GBP", name: "British Pound", category: "currency", unit: "Toman", price: "258,750", delta: "0", dir: "flat", icon: { type: "flag", file: "GB" } },
+    { symbol: "AED", name: "UAE Dirham", category: "currency", unit: "Toman", price: "52,980", delta: "0", dir: "flat", icon: { type: "flag", file: "AE" } },
+    { symbol: "CNY", name: "Chinese Yuan", category: "currency", unit: "Toman", price: "28,540", delta: "0", dir: "flat", icon: { type: "flag", file: "CN" } },
+    { symbol: "TRY", name: "Turkish Lira", category: "currency", unit: "Toman", price: "4,055", delta: "0", dir: "flat", icon: { type: "flag", file: "TR" } },
+    { symbol: "RUB", name: "Russian Ruble", category: "currency", unit: "Toman", price: "2,395", delta: "0", dir: "flat", icon: { type: "flag", file: "RU" } },
+    { symbol: "CAD", name: "Canadian Dollar", category: "currency", unit: "Toman", price: "137,210", delta: "0", dir: "flat", icon: { type: "flag", file: "CA" } },
+    { symbol: "CHF", name: "Swiss Franc", category: "currency", unit: "Toman", price: "237,670", delta: "0", dir: "flat", icon: { type: "flag", file: "CH" } },
+    { symbol: "MEXUSD", name: "Exchange Dollar", category: "currency", unit: "Toman", price: "132,507", delta: "0", dir: "flat", icon: { type: "glyph", text: "$", color: "#D9480F" } },
+
+    { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "Toman", price: "185M", delta: "0", dir: "flat", icon: { type: "glyph", text: "E", color: "var(--gold)" } },
+    { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "Toman", price: "18.36M", delta: "0", dir: "flat", icon: { type: "glyph", text: "Au", color: "var(--gold)" } },
+    { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "USD", price: "4,056", delta: "+4.87", dir: "up", icon: { type: "glyph", text: "Oz", color: "var(--gold)" } },
+    { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "Toman", price: "180M", delta: "0", dir: "flat", icon: { type: "glyph", text: "A1", color: "var(--gold)" } },
+    { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "Toman", price: "94.5M", delta: "0", dir: "flat", icon: { type: "glyph", text: "½", color: "var(--gold)" } },
+    { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "Toman", price: "53M", delta: "0", dir: "flat", icon: { type: "glyph", text: "¼", color: "var(--gold)" } },
+    { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "Toman", price: "27M", delta: "0", dir: "flat", icon: { type: "glyph", text: "1g", color: "var(--gold)" } },
+    { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "Toman", price: "79.55M", delta: "0", dir: "flat", icon: { type: "glyph", text: "Mq", color: "var(--gold)" } },
+
+    { symbol: "USDT", name: "Tether", category: "crypto", unit: "Toman", price: "192,199", delta: "+538.16", dir: "up", icon: { type: "coin", file: "usdt" } },
+    { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "USDT", price: "63,896.1", delta: "+415.32", dir: "up", icon: { type: "coin", file: "btc" } },
+    { symbol: "ETH", name: "Ethereum", category: "crypto", unit: "USDT", price: "1,871.15", delta: "-12.72", dir: "down", icon: { type: "coin", file: "eth" } },
+    { symbol: "XRP", name: "Ripple", category: "crypto", unit: "USDT", price: "1.08", delta: "0", dir: "flat", icon: { type: "coin", file: "xrp" } },
+    { symbol: "BNB", name: "Binance Coin", category: "crypto", unit: "USDT", price: "591.97", delta: "+3.14", dir: "up", icon: { type: "coin", file: "bnb" } },
+    { symbol: "BCH", name: "Bitcoin Cash", category: "crypto", unit: "USDT", price: "214.58", delta: "+0.86", dir: "up", icon: { type: "coin", file: "bch" } },
+    { symbol: "TRX", name: "Tron", category: "crypto", unit: "USDT", price: "0.3302", delta: "0", dir: "flat", icon: { type: "coin", file: "trx" } },
+    { symbol: "LTC", name: "Litecoin", category: "crypto", unit: "USDT", price: "44.52", delta: "-0.33", dir: "down", icon: { type: "coin", file: "ltc" } },
+    { symbol: "DOGE", name: "Dogecoin", category: "crypto", unit: "USDT", price: "0.0706", delta: "0", dir: "flat", icon: { type: "coin", file: "doge" } },
+    { symbol: "SOL", name: "Solana", category: "crypto", unit: "USDT", price: "73.94", delta: "+0.25", dir: "up", icon: { type: "coin", file: "sol" } }
+  ];
+
+  function iconHtml(icon, name) {
+    if (icon.type === "flag") return '<img class="icon flag" src="flags/' + icon.file + '.svg" alt="" />';
+    if (icon.type === "coin") return '<img class="icon coin" src="crypto/' + icon.file + '.svg" alt="" />';
+    return '<span class="icon glyph" style="background:' + icon.color + '">' + icon.text + '</span>';
+  }
+
+  function arrow(dir) { return dir === "up" ? "&#9650; " : dir === "down" ? "&#9660; " : ""; }
+
+  function render(filter) {
+    var board = document.getElementById("board");
+    board.innerHTML = "";
+    var cats = filter === "all" ? CATEGORIES : [filter];
+    cats.forEach(function (cat) {
+      var items = ITEMS.filter(function (i) { return i.category === cat; });
+      if (!items.length) return;
+      var section = document.createElement("section");
+      section.className = "cat";
+      var h2 = document.createElement("h2");
+      h2.textContent = CATEGORY_LABELS[cat];
+      section.appendChild(h2);
+      var grid = document.createElement("div");
+      grid.className = "grid";
+      items.forEach(function (item) {
+        var card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML =
+          '<div class="top">' + iconHtml(item.icon, item.name) +
+          '<div class="meta"><div class="name">' + item.name + '</div><div class="symbol num">' + item.symbol + '</div></div></div>' +
+          '<div class="delta num ' + item.dir + '">' + arrow(item.dir) + item.delta + '</div>' +
+          '<div class="price num">' + item.price + '<span class="unit">' + item.unit + '</span></div>';
+        grid.appendChild(card);
+      });
+      section.appendChild(grid);
+      board.appendChild(section);
+    });
+  }
+
+  document.getElementById("filters").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-filter]");
+    if (!btn) return;
+    document.querySelectorAll("#filters button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    render(btn.getAttribute("data-filter"));
+  });
+
+  render("all");
+</script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 Live prices for major currencies, gold, coins and crypto — in Toman — sourced from [baha24.com](https://baha24.com). Built with Next.js, installable as a PWA on iPhone with an automatic frosted-glass UI in standalone mode.
 
-**[📄 Project page / docs](https://deepinkgroup.github.io/gheymat/)**
+**[🔴 Live preview](https://deepinkgroup.github.io/gheymat/)** (static snapshot — see note below) · **[📄 Project page / showcase](https://deepinkgroup.github.io/gheymat/showcase/)**
 
 ## Run locally
 
@@ -45,6 +45,10 @@ Works on any Next.js host (e.g. Vercel):
 npm run build
 npm start
 ```
+
+### About the GitHub Pages preview
+
+GitHub Pages only serves static files — it can't run this app's API proxy route or dynamic icon generation. `docs/index.html` is a hand-built static clone of the real UI (same design, same icons, a baked-in price snapshot) so the repo has a working visual preview with no backend required. It doesn't poll for live prices. For a fully live deployment, point Vercel (or any Node host) at this repo.
 
 ---
 

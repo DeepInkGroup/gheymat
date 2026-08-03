@@ -12,6 +12,8 @@ export interface SymbolMeta {
   color: string;
   /** ISO code for country-flag-icons (currency category only). */
   flagCode?: string;
+  /** File name (no extension) under /public/crypto for the real coin icon. */
+  iconFile?: string;
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -49,16 +51,16 @@ export const SYMBOLS: SymbolMeta[] = [
   { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "toman", glyph: "1g", color: GOLD },
   { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "toman", glyph: "Mq", color: GOLD },
 
-  { symbol: "USDT", name: "Tether", category: "crypto", unit: "toman", glyph: "₮", color: "#26A17B" },
-  { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "usdt", glyph: "₿", color: "#F7931A" },
-  { symbol: "ETH", name: "Ethereum", category: "crypto", unit: "usdt", glyph: "Ξ", color: "#627EEA" },
-  { symbol: "XRP", name: "Ripple", category: "crypto", unit: "usdt", glyph: "X", color: "#23292F" },
-  { symbol: "BNB", name: "Binance Coin", category: "crypto", unit: "usdt", glyph: "B", color: "#F0B90B" },
-  { symbol: "BCH", name: "Bitcoin Cash", category: "crypto", unit: "usdt", glyph: "₿", color: "#8DC351" },
-  { symbol: "TRX", name: "Tron", category: "crypto", unit: "usdt", glyph: "T", color: "#EF0027" },
-  { symbol: "LTC", name: "Litecoin", category: "crypto", unit: "usdt", glyph: "Ł", color: "#345D9D" },
-  { symbol: "DOGE", name: "Dogecoin", category: "crypto", unit: "usdt", glyph: "Ð", color: "#C2A633" },
-  { symbol: "SOL", name: "Solana", category: "crypto", unit: "usdt", glyph: "◎", color: "#9945FF" },
+  { symbol: "USDT", name: "Tether", category: "crypto", unit: "toman", glyph: "₮", color: "#26A17B", iconFile: "usdt" },
+  { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "usdt", glyph: "₿", color: "#F7931A", iconFile: "btc" },
+  { symbol: "ETH", name: "Ethereum", category: "crypto", unit: "usdt", glyph: "Ξ", color: "#627EEA", iconFile: "eth" },
+  { symbol: "XRP", name: "Ripple", category: "crypto", unit: "usdt", glyph: "X", color: "#23292F", iconFile: "xrp" },
+  { symbol: "BNB", name: "Binance Coin", category: "crypto", unit: "usdt", glyph: "B", color: "#F0B90B", iconFile: "bnb" },
+  { symbol: "BCH", name: "Bitcoin Cash", category: "crypto", unit: "usdt", glyph: "₿", color: "#8DC351", iconFile: "bch" },
+  { symbol: "TRX", name: "Tron", category: "crypto", unit: "usdt", glyph: "T", color: "#EF0027", iconFile: "trx" },
+  { symbol: "LTC", name: "Litecoin", category: "crypto", unit: "usdt", glyph: "Ł", color: "#345D9D", iconFile: "ltc" },
+  { symbol: "DOGE", name: "Dogecoin", category: "crypto", unit: "usdt", glyph: "Ð", color: "#C2A633", iconFile: "doge" },
+  { symbol: "SOL", name: "Solana", category: "crypto", unit: "usdt", glyph: "◎", color: "#9945FF", iconFile: "sol" },
 ];
 
 export const SYMBOL_MAP: Record<string, SymbolMeta> = Object.fromEntries(
