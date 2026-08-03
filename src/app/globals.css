@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f5f0;
+  --surface: #ffffff;
+  --foreground: #16181c;
+  --muted: #6b7078;
+  --border: rgba(22, 24, 28, 0.08);
+  --accent-currency: #3159e8;
+  --accent-gold: #b8860b;
+  --accent-crypto: #7c3aed;
+  --up: #16a34a;
+  --down: #e11d3f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b0d10;
+    --surface: #14171c;
+    --foreground: #f3f4f6;
+    --muted: #8b8f98;
+    --border: rgba(255, 255, 255, 0.08);
+    --accent-currency: #6c8bff;
+    --accent-gold: #e8b93f;
+    --accent-crypto: #a78bfa;
+    --up: #34d766;
+    --down: #ff5470;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent-currency: var(--accent-currency);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-crypto: var(--accent-crypto);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --font-sans: var(--font-inter);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+@supports (padding: max(0px)) {
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+}
+
+/* Glassmorphism — activated on iOS when launched as an installed PWA
+   (see StandaloneDetector.tsx). Regular browser tabs keep the flat look. */
+html.standalone {
+  --muted: rgba(22, 24, 28, 0.62);
+  --border: rgba(255, 255, 255, 0.6);
+}
+
+html.standalone body {
+  background: linear-gradient(160deg, #fdf3e7 0%, #eef1fb 50%, #e9f7f1 100%);
+  background-attachment: fixed;
+}
+
+html.standalone .glass {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 8px 30px rgba(31, 30, 60, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  html.standalone {
+    --muted: rgba(255, 255, 255, 0.68);
+    --border: rgba(255, 255, 255, 0.16);
+  }
+
+  html.standalone body {
+    background: linear-gradient(160deg, #0b0d10 0%, #171335 50%, #06232f 100%);
+    background-attachment: fixed;
+  }
+
+  html.standalone .glass {
+    background: rgba(38, 38, 48, 0.55) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  }
+}
