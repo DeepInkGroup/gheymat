@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Gheymat | Live Currency, Gold & Crypto Prices</title>
 <meta name="description" content="Live prices for USD, EUR, gold, coins and crypto in Toman, sourced from baha24." />
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#f7f5f0" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Gheymat" />
+<meta name="format-detection" content="telephone=no" />
 <style>
   :root {
     --background: #f7f5f0;
@@ -82,6 +93,52 @@
   footer .social { display: flex; gap: 0.75rem; }
   footer a { color: var(--muted); }
   footer a:hover { color: var(--foreground); }
+
+  /* Glassmorphism — activated only when launched as an installed PWA
+     (see the standalone-detection script at the end of body). */
+  html.standalone {
+    --muted: rgba(22, 24, 28, 0.62);
+    --border: rgba(255, 255, 255, 0.6);
+  }
+  html.standalone body {
+    background: linear-gradient(160deg, #fdf3e7 0%, #eef1fb 50%, #e9f7f1 100%);
+    background-attachment: fixed;
+  }
+  html.standalone header,
+  html.standalone .filters,
+  html.standalone .card {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 8px 30px rgba(31, 30, 60, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    html.standalone {
+      --muted: rgba(255, 255, 255, 0.68);
+      --border: rgba(255, 255, 255, 0.16);
+    }
+    html.standalone body {
+      background: linear-gradient(160deg, #0b0d10 0%, #171335 50%, #06232f 100%);
+      background-attachment: fixed;
+    }
+    html.standalone header,
+    html.standalone .filters,
+    html.standalone .card {
+      background: rgba(38, 38, 48, 0.55) !important;
+      border-color: rgba(255, 255, 255, 0.14) !important;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }
+  }
+  /* Web-only chrome has no place in an installed app. */
+  html.standalone footer {
+    display: none !important;
+  }
+  @supports (padding: max(0px)) {
+    html.standalone header {
+      padding-top: max(env(safe-area-inset-top), 0px);
+    }
+  }
 </style>
 </head>
 <body>
@@ -211,6 +268,17 @@
   });
 
   render("all");
+
+  // Standalone PWA detection — flips on the glass theme and hides web-only chrome.
+  var isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    document.documentElement.classList.add("standalone");
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
 </script>
 </body>
 </html>
