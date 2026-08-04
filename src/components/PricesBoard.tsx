@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceRow from "./PriceRow";
 import SettingsPanel from "./SettingsPanel";
+import MoversStrip from "./MoversStrip";
 import { CATEGORY_LABELS, SYMBOL_MAP, SYMBOLS, UNIT_LABELS, type SymbolMeta, type Category } from "@/lib/symbols";
 import type { PriceItem, PricesResult } from "@/lib/baha24";
 import { useHiddenSymbols } from "@/lib/useHiddenSymbols";
 import { usePinnedSymbols } from "@/lib/usePinnedSymbols";
 import { usePriceAlerts } from "@/lib/usePriceAlerts";
 import { useBooleanSetting } from "@/lib/useBooleanSetting";
+import { useMoveSound } from "@/lib/useMoveSound";
 import { formatPrice } from "@/lib/format";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
@@ -19,6 +21,9 @@ const POLL_MS = 10_000;
 // ~10 minutes of trend at the 10s poll rate. Builds up live during this
 // session — there's no backend history store, so it starts empty on load.
 const MAX_HISTORY_POINTS = 60;
+// Minimum |% change| between two consecutive polls (10s apart) to count
+// as a "big move" worth a sound cue.
+const SOUND_THRESHOLD_PCT = 0.3;
 
 export default function PricesBoard() {
   const [data, setData] = useState<PricesResult | null>(null);
@@ -33,7 +38,22 @@ export default function PricesBoard() {
   const [showHighLow, setShowHighLow] = useBooleanSetting("gheymat:show-high-low", false);
   const [showPercentDelta, setShowPercentDelta] = useBooleanSetting("gheymat:show-percent-delta", false);
   const [compactView, setCompactView] = useBooleanSetting("gheymat:compact-view", false);
+  const [soundEnabled, setSoundEnabled] = useBooleanSetting("gheymat:sound-enabled", false);
   const [history, setHistory] = useState<Record<string, number[]>>({});
+  const playMoveSound = useMoveSound(soundEnabled);
+
+  // Read via refs (not the state directly) inside the poll loop below, so
+  // the effect can keep its [] deps — no interval reset every time a
+  // setting or hidden-symbol changes — while still comparing against the
+  // truly latest values instead of a stale closure.
+  const hiddenRef = useRef(hidden);
+  useEffect(() => {
+    hiddenRef.current = hidden;
+  }, [hidden]);
+  const historyRef = useRef(history);
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +64,19 @@ export default function PricesBoard() {
         if (!res.ok) throw new Error("bad response");
         const json: PricesResult = await res.json();
         if (!cancelled) {
+          let biggestMovePct: number | null = null;
+          for (const item of json.items) {
+            if (hiddenRef.current.has(item.symbol)) continue;
+            const prevArr = historyRef.current[item.symbol];
+            const prevPrice = prevArr?.[prevArr.length - 1];
+            if (prevPrice === undefined || prevPrice === 0) continue;
+            const pct = ((item.price - prevPrice) / prevPrice) * 100;
+            if (Math.abs(pct) >= SOUND_THRESHOLD_PCT && (biggestMovePct === null || Math.abs(pct) > Math.abs(biggestMovePct))) {
+              biggestMovePct = pct;
+            }
+          }
+          if (biggestMovePct !== null) playMoveSound(biggestMovePct > 0 ? "up" : "down");
+
           setHistory((prev) => {
             const next = { ...prev };
             for (const item of json.items) {
@@ -66,7 +99,7 @@ export default function PricesBoard() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [playMoveSound]);
 
   // Fires a one-shot browser notification when a price crosses a set
   // alert target. Only works while this tab/app is open and polling —
@@ -222,6 +255,8 @@ export default function PricesBoard() {
           )
         ) : (
           <>
+            {filter === "all" && <MoversStrip />}
+
             {pinnedSymbols.length > 0 && (
               <section>
                 <h2 className="mb-3 text-sm font-semibold text-muted">Pinned</h2>
@@ -261,6 +296,8 @@ export default function PricesBoard() {
         onTogglePercentDelta={() => setShowPercentDelta(!showPercentDelta)}
         compactView={compactView}
         onToggleCompactView={() => setCompactView(!compactView)}
+        soundEnabled={soundEnabled}
+        onToggleSound={() => setSoundEnabled(!soundEnabled)}
       />
     </div>
   );

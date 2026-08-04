@@ -36,6 +36,8 @@ export default function SettingsPanel({
   onTogglePercentDelta,
   compactView,
   onToggleCompactView,
+  soundEnabled,
+  onToggleSound,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,6 +50,8 @@ export default function SettingsPanel({
   onTogglePercentDelta: () => void;
   compactView: boolean;
   onToggleCompactView: () => void;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -95,6 +99,13 @@ export default function SettingsPanel({
             <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
               <span className="text-sm text-foreground">Compact list view</span>
               <Switch on={compactView} onClick={onToggleCompactView} />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+              <span className="text-sm text-foreground">
+                Sound on big moves
+                <span className="block text-xs text-muted">Website only — silent when installed as an app</span>
+              </span>
+              <Switch on={soundEnabled} onClick={onToggleSound} />
             </label>
           </div>
 
