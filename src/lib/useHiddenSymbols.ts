@@ -1,32 +1,41 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { SYMBOLS } from "./symbols";
 
 const STORAGE_KEY = "gheymat:hidden-symbols";
 
-function readStored(): Set<string> {
-  if (typeof window === "undefined") return new Set();
+// First-time default: only Tether and Bitcoin are shown in Crypto; every
+// other coin starts hidden until the user turns it on from settings.
+const DEFAULT_HIDDEN = new Set(
+  SYMBOLS.filter((s) => s.category === "crypto" && s.symbol !== "USDT" && s.symbol !== "BITCOIN").map(
+    (s) => s.symbol
+  )
+);
+
+function readStored(): Set<string> | null {
+  if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return new Set();
+    if (raw === null) return null; // never customized — caller falls back to the default
     const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? new Set(arr) : new Set();
+    return Array.isArray(arr) ? new Set(arr) : null;
   } catch {
-    return new Set();
+    return null;
   }
 }
 
 export function useHiddenSymbols() {
-  const [hidden, setHidden] = useState<Set<string>>(() => new Set());
-  const [ready, setReady] = useState(false);
+  // Server render and the first client render both use the same static
+  // default (no localStorage access yet), so there's no hydration flash.
+  const [hidden, setHidden] = useState<Set<string>>(() => new Set(DEFAULT_HIDDEN));
 
   useEffect(() => {
-    // Read the browser-only localStorage value once after mount so the
-    // server-rendered and first client-rendered pass stay in sync (both
-    // start empty); this is the standard hydration-safe pattern.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHidden(readStored());
-    setReady(true);
+    const stored = readStored();
+    if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHidden(stored);
+    }
   }, []);
 
   const persist = useCallback((next: Set<string>) => {
@@ -50,5 +59,5 @@ export function useHiddenSymbols() {
 
   const showAll = useCallback(() => persist(new Set()), [persist]);
 
-  return { hidden, ready, toggle, showAll };
+  return { hidden, toggle, showAll };
 }

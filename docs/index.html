@@ -321,11 +321,18 @@
 
   // ---- Hidden-instruments preference (localStorage) ----
   var STORAGE_KEY = "gheymat:hidden-symbols";
+  // First-time default: only Tether and Bitcoin shown in Crypto.
+  var DEFAULT_HIDDEN = ITEMS.filter(function (i) {
+    return i.category === "crypto" && i.symbol !== "USDT" && i.symbol !== "BITCOIN";
+  }).map(function (i) { return i.symbol; });
+
   function readHidden() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) return DEFAULT_HIDDEN;
     try {
-      var arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      return Array.isArray(arr) ? arr : [];
-    } catch (e) { return []; }
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : DEFAULT_HIDDEN;
+    } catch (e) { return DEFAULT_HIDDEN; }
   }
   var hidden = {};
   readHidden().forEach(function (s) { hidden[s] = true; });

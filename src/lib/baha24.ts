@@ -14,43 +14,50 @@ export interface PricesResult {
 }
 
 const API_URL = "https://baha24.com/api/v1/price";
-const CACHE_TTL_MS = 45_000;
+// baha24's free tier allows 20 requests per window; this keeps us well
+// under that while still refreshing often. Client polling (10s) hits our
+// own /api/prices route, not baha24 directly, so it never affects this.
+const CACHE_TTL_MS = 30_000;
 
-// Seed values so the UI is always populated even before the first
-// successful live fetch (baha24's free tier is rate limited).
+// Seed values so the UI is never empty before the first successful live fetch.
 const MOCK_SNAPSHOT: PriceItem[] = [
-  { symbol: "USD", price: 192700, changePercent: 0 },
-  { symbol: "EUR", price: 221720, changePercent: 0 },
-  { symbol: "GBP", price: 258750, changePercent: 0 },
-  { symbol: "AED", price: 52980, changePercent: 0 },
-  { symbol: "CNY", price: 28540, changePercent: 0 },
-  { symbol: "TRY", price: 4055, changePercent: 0 },
-  { symbol: "RUB", price: 2395, changePercent: 0 },
-  { symbol: "CAD", price: 137210, changePercent: 0 },
-  { symbol: "CHF", price: 237670, changePercent: 0 },
-  { symbol: "MEXUSD", price: 132507, changePercent: 0 },
-  { symbol: "EMAMI1", price: 185_000_000, changePercent: 0 },
-  { symbol: "GOL18", price: 18_364_190, changePercent: 0 },
-  { symbol: "OUNCE", price: 4056, changePercent: 0.12 },
-  { symbol: "AZADI1", price: 180_000_000, changePercent: 0 },
-  { symbol: "AZADI1_2", price: 94_500_000, changePercent: 0 },
-  { symbol: "AZADI1_4", price: 53_000_000, changePercent: 0 },
-  { symbol: "AZADI1G", price: 27_000_000, changePercent: 0 },
-  { symbol: "MITHQAL", price: 79_550_000, changePercent: 0 },
-  { symbol: "USDT", price: 192199, changePercent: 0.28 },
-  { symbol: "BITCOIN", price: 63896.1, changePercent: 0.65 },
-  { symbol: "ETH", price: 1871.15, changePercent: -0.68 },
-  { symbol: "XRP", price: 1.083, changePercent: 0.16 },
-  { symbol: "BNB", price: 591.97, changePercent: 0.53 },
-  { symbol: "BCH", price: 214.58, changePercent: 0.4 },
-  { symbol: "TRX", price: 0.3302, changePercent: 1.01 },
-  { symbol: "LTC", price: 44.52, changePercent: -0.74 },
-  { symbol: "DOGE", price: 0.0706, changePercent: 0.01 },
-  { symbol: "SOL", price: 73.94, changePercent: 0.34 },
+  { symbol: "USD", price: 192700, changePercent: null },
+  { symbol: "EUR", price: 221720, changePercent: null },
+  { symbol: "GBP", price: 258750, changePercent: null },
+  { symbol: "AED", price: 52980, changePercent: null },
+  { symbol: "CNY", price: 28540, changePercent: null },
+  { symbol: "TRY", price: 4055, changePercent: null },
+  { symbol: "RUB", price: 2395, changePercent: null },
+  { symbol: "CAD", price: 137210, changePercent: null },
+  { symbol: "CHF", price: 237670, changePercent: null },
+  { symbol: "MEXUSD", price: 132507, changePercent: null },
+  { symbol: "EMAMI1", price: 185_000_000, changePercent: null },
+  { symbol: "GOL18", price: 18_364_190, changePercent: null },
+  { symbol: "OUNCE", price: 4056, changePercent: null },
+  { symbol: "AZADI1", price: 180_000_000, changePercent: null },
+  { symbol: "AZADI1_2", price: 94_500_000, changePercent: null },
+  { symbol: "AZADI1_4", price: 53_000_000, changePercent: null },
+  { symbol: "AZADI1G", price: 27_000_000, changePercent: null },
+  { symbol: "MITHQAL", price: 79_550_000, changePercent: null },
+  { symbol: "USDT", price: 192199, changePercent: null },
+  { symbol: "BITCOIN", price: 63896.1, changePercent: null },
+  { symbol: "ETH", price: 1871.15, changePercent: null },
+  { symbol: "XRP", price: 1.083, changePercent: null },
+  { symbol: "BNB", price: 591.97, changePercent: null },
+  { symbol: "BCH", price: 214.58, changePercent: null },
+  { symbol: "TRX", price: 0.3302, changePercent: null },
+  { symbol: "LTC", price: 44.52, changePercent: null },
+  { symbol: "DOGE", price: 0.0706, changePercent: null },
+  { symbol: "SOL", price: 73.94, changePercent: null },
 ].map((item) => ({ ...item, updatedAt: null }));
 
 let cache: PricesResult | null = null;
 let inFlight: Promise<PricesResult> | null = null;
+
+// baha24 doesn't return a change/percent field at all — we track the last
+// live price per symbol ourselves so cards can show a real, self-measured
+// delta between our own polls instead of a fake/borrowed number.
+const previousPrices = new Map<string, number>();
 
 function toNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -61,27 +68,25 @@ function toNumber(value: unknown): number | null {
   return null;
 }
 
-/** baha24's response shape isn't fully documented; try the common field-name variants. */
-function normalizeItem(raw: Record<string, unknown>): PriceItem | null {
-  const symbol = String(raw.symbol ?? raw.code ?? raw.name ?? "").toUpperCase();
+/**
+ * baha24's actual response is a flat JSON array, e.g.:
+ * [{ "title": "دلار آمریکا", "symbol": "USD", "sell": "191500.00000000", "last_update": "2026-08-04 13:38" }, ...]
+ */
+function normalizeItem(raw: Record<string, unknown>): { symbol: string; price: number; updatedAt: string | null } | null {
+  const symbol = String(raw.symbol ?? "").toUpperCase();
   if (!symbol || !SYMBOL_MAP[symbol]) return null;
 
-  const price = toNumber(raw.price ?? raw.rate ?? raw.value ?? raw.amount);
+  const price = toNumber(raw.sell ?? raw.price ?? raw.rate ?? raw.value ?? raw.amount);
   if (price === null) return null;
 
-  const changePercent = toNumber(
-    raw.change_percent ?? raw.changePercent ?? raw.percent_change ?? raw.change ?? raw.diff_percent
-  );
+  const updatedAt = (raw.last_update as string) ?? (raw.updated_at as string) ?? null;
 
-  const updatedAt =
-    (raw.updated_at as string) ?? (raw.updatedAt as string) ?? (raw.time as string) ?? null;
-
-  return { symbol, price, changePercent, updatedAt };
+  return { symbol, price, updatedAt };
 }
 
-function normalizeResponse(json: unknown): PriceItem[] {
+function normalizeResponse(json: unknown): Array<{ symbol: string; price: number; updatedAt: string | null }> {
   const container =
-    json && typeof json === "object" && "data" in (json as Record<string, unknown>)
+    json && typeof json === "object" && !Array.isArray(json) && "data" in (json as Record<string, unknown>)
       ? (json as Record<string, unknown>).data
       : json;
 
@@ -91,7 +96,7 @@ function normalizeResponse(json: unknown): PriceItem[] {
     ? Object.values(container as Record<string, unknown>)
     : [];
 
-  const items: PriceItem[] = [];
+  const items: Array<{ symbol: string; price: number; updatedAt: string | null }> = [];
   for (const raw of list) {
     if (raw && typeof raw === "object") {
       const item = normalizeItem(raw as Record<string, unknown>);
@@ -111,10 +116,19 @@ async function fetchLive(): Promise<PriceItem[]> {
     throw new Error(`baha24 responded ${res.status}`);
   }
   const json = await res.json();
-  const items = normalizeResponse(json);
-  if (items.length === 0) {
+  const rawItems = normalizeResponse(json);
+  if (rawItems.length === 0) {
     throw new Error("baha24 response could not be parsed");
   }
+
+  const items: PriceItem[] = rawItems.map(({ symbol, price, updatedAt }) => {
+    const prev = previousPrices.get(symbol);
+    const changePercent = prev && prev !== 0 ? ((price - prev) / prev) * 100 : null;
+    return { symbol, price, changePercent, updatedAt };
+  });
+
+  for (const { symbol, price } of rawItems) previousPrices.set(symbol, price);
+
   return items;
 }
 
