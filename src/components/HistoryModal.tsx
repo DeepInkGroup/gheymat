@@ -8,8 +8,10 @@ interface HistoryPoint {
   p: number;
 }
 
+// The cron snapshot runs once a day (Vercel Hobby plan's cron limit), so
+// a 1-day range would almost always be empty — 7D/30D are what's
+// actually meaningful at that cadence.
 const RANGES = [
-  { label: "1D", days: 1 },
   { label: "7D", days: 7 },
   { label: "30D", days: 30 },
 ];

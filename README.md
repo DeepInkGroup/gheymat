@@ -39,9 +39,9 @@ To enable the "History" view (multi-day chart per instrument) instead of "not se
 
 1. In the Vercel dashboard, open this project → **Storage** tab → **Create Database** → **Upstash for Redis** (or "KV") → connect it to this project. Vercel adds the `KV_REST_API_URL` / `KV_REST_API_TOKEN` env vars and redeploys automatically.
 2. (Recommended) Set a `CRON_SECRET` env var to any random string — it's checked against the `Authorization` header on the cron request so random visitors can't trigger snapshot writes.
-3. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled (`vercel.json` asks for every 30 minutes; your plan may enforce a different minimum).
+3. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled.
 
-History starts empty and fills in as the cron job runs — there's no way to backfill the past.
+`vercel.json` schedules one snapshot a day (`0 3 * * *`) — that's the hard limit on Vercel's Hobby plan (more frequent expressions **fail the entire deployment**, not just the cron job). Upgrade to Pro for per-minute cron if you want finer-grained history. History starts empty and fills in one point per day as the cron job runs — there's no way to backfill the past.
 
 ## PWA on iPhone
 
