@@ -14,6 +14,8 @@ export interface SymbolMeta {
   flagCode?: string;
   /** File name (no extension) under /public/crypto for the real coin icon. */
   iconFile?: string;
+  /** Which built-in illustration to use (gold category only). */
+  iconKind?: "coin" | "bar" | "globe";
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -42,14 +44,14 @@ export const SYMBOLS: SymbolMeta[] = [
   { symbol: "CHF", name: "Swiss Franc", category: "currency", unit: "toman", glyph: "CH", color: "#099268", flagCode: "CH" },
   { symbol: "MEXUSD", name: "Exchange Dollar", category: "currency", unit: "toman", glyph: "$", color: "#D9480F" },
 
-  { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "toman", glyph: "E", color: GOLD },
-  { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "toman", glyph: "Au", color: GOLD },
-  { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "usd", glyph: "Oz", color: GOLD },
-  { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "toman", glyph: "A1", color: GOLD },
-  { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "toman", glyph: "½", color: GOLD },
-  { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "toman", glyph: "¼", color: GOLD },
-  { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "toman", glyph: "1g", color: GOLD },
-  { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "toman", glyph: "Mq", color: GOLD },
+  { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "toman", glyph: "E", color: GOLD, iconKind: "coin" },
+  { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "toman", glyph: "Au", color: GOLD, iconKind: "bar" },
+  { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "usd", glyph: "Oz", color: GOLD, iconKind: "globe" },
+  { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "toman", glyph: "A1", color: GOLD, iconKind: "coin" },
+  { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "toman", glyph: "½", color: GOLD, iconKind: "coin" },
+  { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "toman", glyph: "¼", color: GOLD, iconKind: "coin" },
+  { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "toman", glyph: "1g", color: GOLD, iconKind: "coin" },
+  { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "toman", glyph: "Mq", color: GOLD, iconKind: "bar" },
 
   { symbol: "USDT", name: "Tether", category: "crypto", unit: "toman", glyph: "₮", color: "#26A17B", iconFile: "usdt" },
   { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "usdt", glyph: "₿", color: "#F7931A", iconFile: "btc" },

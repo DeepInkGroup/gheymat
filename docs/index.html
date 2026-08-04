@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Gheymat | Live Currency, Gold & Crypto Prices</title>
 <meta name="description" content="Live prices for USD, EUR, gold, coins and crypto in Toman, sourced from baha24." />
 
@@ -40,7 +40,7 @@
     }
   }
   * { box-sizing: border-box; }
-  html, body { background: var(--background); color: var(--foreground); margin: 0; }
+  html, body { background: var(--background); color: var(--foreground); margin: 0; touch-action: pan-x pan-y; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
   .num { direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
   header {
@@ -53,16 +53,22 @@
   header .brand-text .tag { font-size: 0.65rem; color: var(--muted); }
   main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem; }
   .filters {
-    position: sticky; top: 3.5rem; z-index: 10; display: flex; gap: 0.5rem; overflow-x: auto;
+    position: sticky; top: 3.5rem; z-index: 10; display: flex; align-items: center; gap: 0.5rem;
     border: 1px solid var(--border); border-radius: 1rem; background: var(--background); padding: 0.75rem;
     margin-bottom: 1.5rem;
   }
-  .filters button {
+  .filters .pills { flex: 1; display: flex; gap: 0.5rem; overflow-x: auto; }
+  .filters button.pill {
     flex-shrink: 0; border: none; cursor: pointer; border-radius: 999px; padding: 0.4rem 1rem;
     font-size: 0.875rem; font-weight: 500; background: var(--surface); color: var(--muted);
     font-family: inherit;
   }
-  .filters button.active { background: var(--foreground); color: var(--background); }
+  .filters button.pill.active { background: var(--foreground); color: var(--background); }
+  .settings-btn {
+    flex-shrink: 0; border: none; cursor: pointer; background: none; color: var(--muted);
+    width: 2rem; height: 2rem; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+  }
+  .settings-btn:hover { background: var(--surface); color: var(--foreground); }
   section.cat { margin-bottom: 2rem; }
   section.cat h2 { font-size: 0.875rem; font-weight: 600; color: var(--muted); margin: 0 0 0.75rem; }
   .grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
@@ -75,10 +81,11 @@
   .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
   .icon { width: 2.5rem; height: 2.5rem; border-radius: 999px; flex-shrink: 0; }
   .icon.flag, .icon.coin { object-fit: cover; border: 1px solid var(--border); }
-  .icon.glyph {
+  .icon.glyph, .icon.gold {
     display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;
     font-size: 0.8rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   }
+  .icon.gold svg { width: 1.25rem; height: 1.25rem; }
   .meta { text-align: right; min-width: 0; }
   .meta .name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .meta .symbol { font-size: 0.75rem; color: var(--muted); }
@@ -94,6 +101,53 @@
   footer a { color: var(--muted); }
   footer a:hover { color: var(--foreground); }
 
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 50; align-items: flex-end; justify-content: center;
+    background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px);
+  }
+  .modal-backdrop.open { display: flex; }
+  @media (min-width: 640px) { .modal-backdrop { align-items: center; } }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); width: 100%; max-width: 28rem;
+    max-height: 80vh; display: flex; flex-direction: column; border-radius: 1rem 1rem 0 0;
+  }
+  @media (min-width: 640px) { .modal { border-radius: 1rem; } }
+  .modal-head {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border); padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 600;
+  }
+  .modal-head button {
+    border: none; background: none; cursor: pointer; color: var(--muted); width: 1.75rem; height: 1.75rem;
+    border-radius: 999px; font-size: 1rem;
+  }
+  .modal-head button:hover { background: var(--background); color: var(--foreground); }
+  .modal-body { flex: 1; overflow-y: auto; padding: 0.75rem 1rem; }
+  .modal-body h3 {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); margin: 1rem 0 0.5rem;
+  }
+  .modal-body h3:first-child { margin-top: 0; }
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    padding: 0.5rem 0.25rem; border-radius: 0.75rem; font-size: 0.875rem;
+  }
+  .toggle-row:hover { background: var(--background); }
+  .switch {
+    position: relative; width: 2.75rem; height: 1.5rem; border-radius: 999px; background: var(--border);
+    cursor: pointer; flex-shrink: 0; border: none; padding: 0;
+  }
+  .switch.on { background: var(--up); }
+  .switch .knob {
+    position: absolute; top: 0.125rem; left: 0.125rem; width: 1.25rem; height: 1.25rem; border-radius: 999px;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.15s;
+  }
+  .switch.on .knob { transform: translateX(1.25rem); }
+  .modal-foot { flex-shrink: 0; border-top: 1px solid var(--border); padding: 0.75rem 1rem; }
+  .modal-foot button {
+    width: 100%; border: none; cursor: pointer; background: var(--background); color: var(--foreground);
+    font-size: 0.875rem; font-weight: 500; padding: 0.6rem; border-radius: 0.75rem; font-family: inherit;
+  }
+
   /* Glassmorphism — activated only when launched as an installed PWA
      (see the standalone-detection script at the end of body). */
   html.standalone {
@@ -106,7 +160,8 @@
   }
   html.standalone header,
   html.standalone .filters,
-  html.standalone .card {
+  html.standalone .card,
+  html.standalone .modal {
     background: rgba(255, 255, 255, 0.6) !important;
     border-color: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(20px) saturate(160%);
@@ -124,7 +179,8 @@
     }
     html.standalone header,
     html.standalone .filters,
-    html.standalone .card {
+    html.standalone .card,
+    html.standalone .modal {
       background: rgba(38, 38, 48, 0.55) !important;
       border-color: rgba(255, 255, 255, 0.14) !important;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
@@ -163,14 +219,38 @@
   </header>
 
   <main>
-    <div class="filters" id="filters">
-      <button data-filter="all" class="active">All</button>
-      <button data-filter="currency">Currency</button>
-      <button data-filter="gold">Gold &amp; Coins</button>
-      <button data-filter="crypto">Crypto</button>
+    <div class="filters">
+      <div class="pills" id="filters">
+        <button class="pill" data-filter="all">All</button>
+        <button class="pill" data-filter="currency">Currency</button>
+        <button class="pill" data-filter="gold">Gold &amp; Coins</button>
+        <button class="pill" data-filter="crypto">Crypto</button>
+      </div>
+      <button class="settings-btn" id="settingsBtn" aria-label="Customize instruments">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+        </svg>
+      </button>
     </div>
     <div id="board"></div>
+    <p id="emptyState" style="display:none; text-align:center; padding:3rem 0; font-size:0.875rem; color:var(--muted);">
+      Everything&apos;s hidden. Tap the settings icon to bring instruments back.
+    </p>
   </main>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <span>Customize instruments</span>
+        <button id="modalClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot">
+        <button id="showAllBtn">Show all</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <div class="social">
@@ -201,14 +281,14 @@
     { symbol: "CHF", name: "Swiss Franc", category: "currency", unit: "Toman", price: "237,670", delta: "0", dir: "flat", icon: { type: "flag", file: "CH" } },
     { symbol: "MEXUSD", name: "Exchange Dollar", category: "currency", unit: "Toman", price: "132,507", delta: "0", dir: "flat", icon: { type: "glyph", text: "$", color: "#D9480F" } },
 
-    { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "Toman", price: "185M", delta: "0", dir: "flat", icon: { type: "glyph", text: "E", color: "var(--gold)" } },
-    { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "Toman", price: "18.36M", delta: "0", dir: "flat", icon: { type: "glyph", text: "Au", color: "var(--gold)" } },
-    { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "USD", price: "4,056", delta: "+4.87", dir: "up", icon: { type: "glyph", text: "Oz", color: "var(--gold)" } },
-    { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "Toman", price: "180M", delta: "0", dir: "flat", icon: { type: "glyph", text: "A1", color: "var(--gold)" } },
-    { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "Toman", price: "94.5M", delta: "0", dir: "flat", icon: { type: "glyph", text: "½", color: "var(--gold)" } },
-    { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "Toman", price: "53M", delta: "0", dir: "flat", icon: { type: "glyph", text: "¼", color: "var(--gold)" } },
-    { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "Toman", price: "27M", delta: "0", dir: "flat", icon: { type: "glyph", text: "1g", color: "var(--gold)" } },
-    { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "Toman", price: "79.55M", delta: "0", dir: "flat", icon: { type: "glyph", text: "Mq", color: "var(--gold)" } },
+    { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "Toman", price: "185M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
+    { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "Toman", price: "18.36M", delta: "0", dir: "flat", icon: { type: "gold", kind: "bar" } },
+    { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "USD", price: "4,056", delta: "+4.87", dir: "up", icon: { type: "gold", kind: "globe" } },
+    { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "Toman", price: "180M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
+    { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "Toman", price: "94.5M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
+    { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "Toman", price: "53M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
+    { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "Toman", price: "27M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
+    { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "Toman", price: "79.55M", delta: "0", dir: "flat", icon: { type: "gold", kind: "bar" } },
 
     { symbol: "USDT", name: "Tether", category: "crypto", unit: "Toman", price: "192,199", delta: "+538.16", dir: "up", icon: { type: "coin", file: "usdt" } },
     { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "USDT", price: "63,896.1", delta: "+415.32", dir: "up", icon: { type: "coin", file: "btc" } },
@@ -222,21 +302,49 @@
     { symbol: "SOL", name: "Solana", category: "crypto", unit: "USDT", price: "73.94", delta: "+0.25", dir: "up", icon: { type: "coin", file: "sol" } }
   ];
 
-  function iconHtml(icon, name) {
+  var GOLD_GLYPHS = {
+    coin: '<circle cx="12" cy="12" r="8" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.2"/><path d="M12 9.3v5.4M10.3 10.5l3.4 3M13.7 10.5l-3.4 3" stroke="white" stroke-width="1" stroke-linecap="round"/>',
+    bar: '<path d="M7.5 16.5 9 8h6l1.5 8.5H7.5Z" fill="white" fill-opacity="0.92"/>',
+    globe: '<circle cx="12" cy="12" r="7" stroke="white" stroke-width="1.4"/><ellipse cx="12" cy="12" rx="3" ry="7" stroke="white" stroke-width="1.1"/><path d="M5.3 12h13.4" stroke="white" stroke-width="1.1"/>'
+  };
+
+  function iconHtml(icon) {
     if (icon.type === "flag") return '<img class="icon flag" src="flags/' + icon.file + '.svg" alt="" />';
     if (icon.type === "coin") return '<img class="icon coin" src="crypto/' + icon.file + '.svg" alt="" />';
+    if (icon.type === "gold") {
+      return '<span class="icon gold" style="background:var(--gold)"><svg viewBox="0 0 24 24" fill="none">' + GOLD_GLYPHS[icon.kind] + '</svg></span>';
+    }
     return '<span class="icon glyph" style="background:' + icon.color + '">' + icon.text + '</span>';
   }
 
   function arrow(dir) { return dir === "up" ? "&#9650; " : dir === "down" ? "&#9660; " : ""; }
 
-  function render(filter) {
+  // ---- Hidden-instruments preference (localStorage) ----
+  var STORAGE_KEY = "gheymat:hidden-symbols";
+  function readHidden() {
+    try {
+      var arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  var hidden = {};
+  readHidden().forEach(function (s) { hidden[s] = true; });
+  function persistHidden() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.keys(hidden))); } catch (e) {}
+  }
+
+  var currentFilter = "all";
+
+  function render() {
     var board = document.getElementById("board");
+    var empty = document.getElementById("emptyState");
     board.innerHTML = "";
-    var cats = filter === "all" ? CATEGORIES : [filter];
+    var cats = currentFilter === "all" ? CATEGORIES : [currentFilter];
+    var any = false;
     cats.forEach(function (cat) {
-      var items = ITEMS.filter(function (i) { return i.category === cat; });
+      var items = ITEMS.filter(function (i) { return i.category === cat && !hidden[i.symbol]; });
       if (!items.length) return;
+      any = true;
       var section = document.createElement("section");
       section.className = "cat";
       var h2 = document.createElement("h2");
@@ -248,7 +356,7 @@
         var card = document.createElement("div");
         card.className = "card";
         card.innerHTML =
-          '<div class="top">' + iconHtml(item.icon, item.name) +
+          '<div class="top">' + iconHtml(item.icon) +
           '<div class="meta"><div class="name">' + item.name + '</div><div class="symbol num">' + item.symbol + '</div></div></div>' +
           '<div class="delta num ' + item.dir + '">' + arrow(item.dir) + item.delta + '</div>' +
           '<div class="price num">' + item.price + '<span class="unit">' + item.unit + '</span></div>';
@@ -257,17 +365,78 @@
       section.appendChild(grid);
       board.appendChild(section);
     });
+    empty.style.display = any ? "none" : "block";
   }
 
   document.getElementById("filters").addEventListener("click", function (e) {
     var btn = e.target.closest("button[data-filter]");
     if (!btn) return;
-    document.querySelectorAll("#filters button").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll("#filters .pill").forEach(function (b) { b.classList.remove("active"); });
     btn.classList.add("active");
-    render(btn.getAttribute("data-filter"));
+    currentFilter = btn.getAttribute("data-filter");
+    render();
   });
+  document.querySelector('[data-filter="all"]').classList.add("active");
 
-  render("all");
+  render();
+
+  // ---- Settings panel ----
+  var backdrop = document.getElementById("modalBackdrop");
+  var modalBody = document.getElementById("modalBody");
+
+  function renderModal() {
+    modalBody.innerHTML = "";
+    CATEGORIES.forEach(function (cat) {
+      var h3 = document.createElement("h3");
+      h3.textContent = CATEGORY_LABELS[cat];
+      modalBody.appendChild(h3);
+      ITEMS.filter(function (i) { return i.category === cat; }).forEach(function (item) {
+        var row = document.createElement("div");
+        row.className = "toggle-row";
+        var visible = !hidden[item.symbol];
+        row.innerHTML =
+          '<span>' + item.name + '</span>' +
+          '<button class="switch' + (visible ? ' on' : '') + '" data-symbol="' + item.symbol + '" role="switch" aria-checked="' + visible + '"><span class="knob"></span></button>';
+        modalBody.appendChild(row);
+      });
+    });
+  }
+
+  function openModal() {
+    renderModal();
+    backdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    backdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("settingsBtn").addEventListener("click", openModal);
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  backdrop.addEventListener("click", function (e) {
+    if (e.target === backdrop) closeModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeModal();
+  });
+  modalBody.addEventListener("click", function (e) {
+    var btn = e.target.closest(".switch");
+    if (!btn) return;
+    var symbol = btn.getAttribute("data-symbol");
+    if (hidden[symbol]) delete hidden[symbol];
+    else hidden[symbol] = true;
+    persistHidden();
+    btn.classList.toggle("on");
+    btn.setAttribute("aria-checked", String(!hidden[symbol]));
+    render();
+  });
+  document.getElementById("showAllBtn").addEventListener("click", function () {
+    hidden = {};
+    persistHidden();
+    renderModal();
+    render();
+  });
 
   // Standalone PWA detection — flips on the glass theme and hides web-only chrome.
   var isStandalone =
