@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Gheymat | Live Currency, Gold & Crypto Prices</title>
 <meta name="description" content="Live prices for USD, EUR, gold, coins and crypto in Toman, sourced from baha24." />
+<meta http-equiv="refresh" content="0; url=https://gheymat.vercel.app/" />
 
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -19,442 +20,45 @@
 <style>
   :root {
     --background: #f7f5f0;
-    --surface: #ffffff;
     --foreground: #16181c;
     --muted: #6b7078;
-    --border: rgba(22, 24, 28, 0.08);
-    --up: #16a34a;
-    --down: #e11d3f;
-    --gold: #B8860B;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --background: #0b0d10;
-      --surface: #14171c;
-      --foreground: #f3f4f6;
-      --muted: #8b8f98;
-      --border: rgba(255, 255, 255, 0.08);
-      --up: #34d766;
-      --down: #ff5470;
-      --gold: #e8b93f;
-    }
+    :root { --background: #0b0d10; --foreground: #f3f4f6; --muted: #8b8f98; }
   }
   * { box-sizing: border-box; }
-  html, body { background: var(--background); color: var(--foreground); margin: 0; touch-action: pan-x pan-y; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
-  .num { direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
-  header {
-    position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--background) 90%, transparent); backdrop-filter: blur(12px);
+  html, body {
+    background: var(--background); color: var(--foreground); margin: 0; height: 100%;
+    touch-action: pan-x pan-y;
   }
-  header .inner { max-width: 64rem; margin: 0 auto; display: flex; align-items: center; gap: 0.5rem; height: 3.5rem; padding: 0 1rem; }
-  header .brand-text { line-height: 1.2; }
-  header .brand-text .name { font-size: 0.9rem; font-weight: 700; }
-  header .brand-text .tag { font-size: 0.65rem; color: var(--muted); }
-  main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem; }
-  .filters {
-    position: sticky; top: 3.5rem; z-index: 10; display: flex; align-items: center; gap: 0.5rem;
-    border: 1px solid var(--border); border-radius: 1rem; background: var(--background); padding: 0.75rem;
-    margin-bottom: 1.5rem;
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    display: flex; align-items: center; justify-content: center; text-align: center; padding: 1.5rem;
   }
-  .filters .pills { flex: 1; display: flex; gap: 0.5rem; overflow-x: auto; }
-  .filters button.pill {
-    flex-shrink: 0; border: none; cursor: pointer; border-radius: 999px; padding: 0.4rem 1rem;
-    font-size: 0.875rem; font-weight: 500; background: var(--surface); color: var(--muted);
-    font-family: inherit;
-  }
-  .filters button.pill.active { background: var(--foreground); color: var(--background); }
-  .settings-btn {
-    flex-shrink: 0; border: none; cursor: pointer; background: none; color: var(--muted);
-    width: 2rem; height: 2rem; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-  }
-  .settings-btn:hover { background: var(--surface); color: var(--foreground); }
-  section.cat { margin-bottom: 2rem; }
-  section.cat h2 { font-size: 0.875rem; font-weight: 600; color: var(--muted); margin: 0 0 0.75rem; }
-  .grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
-  @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-  .card {
-    border: 1px solid var(--border); background: var(--surface); border-radius: 1rem; padding: 1rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-  }
-  .card .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
-  .icon { width: 2.5rem; height: 2.5rem; border-radius: 999px; flex-shrink: 0; }
-  .icon.flag, .icon.coin { object-fit: cover; border: 1px solid var(--border); }
-  .icon.glyph, .icon.gold {
-    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;
-    font-size: 0.8rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  }
-  .icon.gold svg { width: 1.25rem; height: 1.25rem; }
-  .meta { text-align: right; min-width: 0; }
-  .meta .name { font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meta .symbol { font-size: 0.75rem; color: var(--muted); }
-  .delta { margin-top: 0.75rem; font-size: 0.75rem; font-weight: 600; }
-  .delta.up { color: var(--up); }
-  .delta.down { color: var(--down); }
-  .delta.flat { color: var(--muted); }
-  .price { font-size: 1.25rem; font-weight: 800; }
-  @media (min-width: 640px) { .price { font-size: 1.5rem; } }
-  .price .unit { margin-left: 0.35rem; font-size: 0.75rem; font-weight: 400; color: var(--muted); }
-  footer { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem 2rem; text-align: center; font-size: 0.75rem; color: var(--muted); }
-  footer .social { display: flex; gap: 0.75rem; }
-  footer a { color: var(--muted); }
-  footer a:hover { color: var(--foreground); }
-
-  .modal-backdrop {
-    display: none; position: fixed; inset: 0; z-index: 50; align-items: flex-end; justify-content: center;
-    background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px);
-  }
-  .modal-backdrop.open { display: flex; }
-  @media (min-width: 640px) { .modal-backdrop { align-items: center; } }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border); width: 100%; max-width: 28rem;
-    max-height: 80vh; display: flex; flex-direction: column; border-radius: 1rem 1rem 0 0;
-  }
-  @media (min-width: 640px) { .modal { border-radius: 1rem; } }
-  .modal-head {
-    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border); padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 600;
-  }
-  .modal-head button {
-    border: none; background: none; cursor: pointer; color: var(--muted); width: 1.75rem; height: 1.75rem;
-    border-radius: 999px; font-size: 1rem;
-  }
-  .modal-head button:hover { background: var(--background); color: var(--foreground); }
-  .modal-body { flex: 1; overflow-y: auto; padding: 0.75rem 1rem; }
-  .modal-body h3 {
-    font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); margin: 1rem 0 0.5rem;
-  }
-  .modal-body h3:first-child { margin-top: 0; }
-  .toggle-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-    padding: 0.5rem 0.25rem; border-radius: 0.75rem; font-size: 0.875rem;
-  }
-  .toggle-row:hover { background: var(--background); }
-  .switch {
-    position: relative; width: 2.75rem; height: 1.5rem; border-radius: 999px; background: var(--border);
-    cursor: pointer; flex-shrink: 0; border: none; padding: 0;
-  }
-  .switch.on { background: var(--up); }
-  .switch .knob {
-    position: absolute; top: 0.125rem; left: 0.125rem; width: 1.25rem; height: 1.25rem; border-radius: 999px;
-    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.15s;
-  }
-  .switch.on .knob { transform: translateX(1.25rem); }
-  .modal-foot { flex-shrink: 0; border-top: 1px solid var(--border); padding: 0.75rem 1rem; }
-  .modal-foot button {
-    width: 100%; border: none; cursor: pointer; background: var(--background); color: var(--foreground);
-    font-size: 0.875rem; font-weight: 500; padding: 0.6rem; border-radius: 0.75rem; font-family: inherit;
-  }
-
-  /* Glassmorphism — activated only when launched as an installed PWA
-     (see the standalone-detection script at the end of body). */
-  html.standalone {
-    --muted: rgba(22, 24, 28, 0.62);
-    --border: rgba(255, 255, 255, 0.6);
-  }
-  html.standalone body {
-    background: linear-gradient(160deg, #fdf3e7 0%, #eef1fb 50%, #e9f7f1 100%);
-    background-attachment: fixed;
-  }
-  html.standalone header,
-  html.standalone .filters,
-  html.standalone .card,
-  html.standalone .modal {
-    background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba(255, 255, 255, 0.7) !important;
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    box-shadow: 0 8px 30px rgba(31, 30, 60, 0.08);
-  }
-  @media (prefers-color-scheme: dark) {
-    html.standalone {
-      --muted: rgba(255, 255, 255, 0.68);
-      --border: rgba(255, 255, 255, 0.16);
-    }
-    html.standalone body {
-      background: linear-gradient(160deg, #0b0d10 0%, #171335 50%, #06232f 100%);
-      background-attachment: fixed;
-    }
-    html.standalone header,
-    html.standalone .filters,
-    html.standalone .card,
-    html.standalone .modal {
-      background: rgba(38, 38, 48, 0.55) !important;
-      border-color: rgba(255, 255, 255, 0.14) !important;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-    }
-  }
-  /* Web-only chrome has no place in an installed app. */
-  html.standalone footer {
-    display: none !important;
-  }
-  @supports (padding: max(0px)) {
-    html.standalone header {
-      padding-top: max(env(safe-area-inset-top), 0px);
-    }
-  }
+  .wrap { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  a { color: var(--foreground); font-weight: 600; }
 </style>
 </head>
 <body>
-  <header>
-    <div class="inner">
-      <svg width="32" height="32" viewBox="0 0 100 100" aria-hidden>
-        <defs>
-          <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#EF4136" /><stop offset="25%" stop-color="#F7941D" />
-            <stop offset="50%" stop-color="#FFD200" /><stop offset="72%" stop-color="#39B54A" />
-            <stop offset="100%" stop-color="#2E9DF7" />
-          </linearGradient>
-        </defs>
-        <path d="M 11.94 67.75 A 42 42 0 1 1 32.25 88.06 L 37.32 77.19 A 30 30 0 1 0 22.81 62.68 Z" fill="url(#brandGrad)" />
-        <text x="50" y="67" font-size="48" font-weight="800" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="url(#brandGrad)">$</text>
-      </svg>
-      <div class="brand-text">
-        <div class="name">Gheymat</div>
-        <div class="tag">Live currency, gold &amp; crypto prices</div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <div class="filters">
-      <div class="pills" id="filters">
-        <button class="pill" data-filter="all">All</button>
-        <button class="pill" data-filter="currency">Currency</button>
-        <button class="pill" data-filter="gold">Gold &amp; Coins</button>
-        <button class="pill" data-filter="crypto">Crypto</button>
-      </div>
-      <button class="settings-btn" id="settingsBtn" aria-label="Customize instruments">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-        </svg>
-      </button>
-    </div>
-    <div id="board"></div>
-    <p id="emptyState" style="display:none; text-align:center; padding:3rem 0; font-size:0.875rem; color:var(--muted);">
-      Everything&apos;s hidden. Tap the settings icon to bring instruments back.
-    </p>
-  </main>
-
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-head">
-        <span>Customize instruments</span>
-        <button id="modalClose" aria-label="Close">&#10005;</button>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
-      <div class="modal-foot">
-        <button id="showAllBtn">Show all</button>
-      </div>
-    </div>
+  <div class="wrap">
+    <svg width="56" height="56" viewBox="0 0 100 100" aria-hidden>
+      <defs>
+        <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#EF4136" /><stop offset="25%" stop-color="#F7941D" />
+          <stop offset="50%" stop-color="#FFD200" /><stop offset="72%" stop-color="#39B54A" />
+          <stop offset="100%" stop-color="#2E9DF7" />
+        </linearGradient>
+      </defs>
+      <path d="M 11.94 67.75 A 42 42 0 1 1 32.25 88.06 L 37.32 77.19 A 30 30 0 1 0 22.81 62.68 Z" fill="url(#brandGrad)" />
+      <text x="50" y="67" font-size="48" font-weight="800" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="url(#brandGrad)">$</text>
+    </svg>
+    <p>Taking you to the live app&hellip;</p>
+    <a href="https://gheymat.vercel.app/">Open Gheymat</a>
+    <p><a href="showcase/">About this project &amp; source code</a></p>
   </div>
-
-  <footer>
-    <div class="social">
-      <a href="https://github.com/DeepInkGroup" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.87 10.93c.58.1.79-.25.79-.56v-2.17c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.08-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.8 1.19 1.82 1.19 3.08 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.07.78 2.15v3.19c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
-      </a>
-      <a href="https://t.me/DeepInkGroup" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.05 2.1 19.6 21.16c-.26 1.15-.94 1.44-1.9.9l-5.26-3.88-2.54 2.45c-.28.28-.52.52-1.06.52l.38-5.4L19 6.1c.44-.39-.1-.6-.68-.22L6.7 13.2l-5.3-1.66c-1.15-.36-1.17-1.15.24-1.7L21.6.87c.96-.36 1.8.22 1.45 1.23Z"/></svg>
-      </a>
-    </div>
-    <div>DeepInk Group - Gheymat</div>
-    <div><a href="showcase/">About this project &amp; source code &rarr;</a></div>
-  </footer>
-
-<script>
-  var CATEGORY_LABELS = { currency: "Currency", gold: "Gold & Coins", crypto: "Crypto" };
-  var CATEGORIES = ["currency", "gold", "crypto"];
-
-  var ITEMS = [
-    { symbol: "USD", name: "US Dollar", category: "currency", unit: "Toman", price: "192,700", delta: "0", dir: "flat", icon: { type: "flag", file: "US" } },
-    { symbol: "EUR", name: "Euro", category: "currency", unit: "Toman", price: "221,720", delta: "0", dir: "flat", icon: { type: "flag", file: "EU" } },
-    { symbol: "GBP", name: "British Pound", category: "currency", unit: "Toman", price: "258,750", delta: "0", dir: "flat", icon: { type: "flag", file: "GB" } },
-    { symbol: "AED", name: "UAE Dirham", category: "currency", unit: "Toman", price: "52,980", delta: "0", dir: "flat", icon: { type: "flag", file: "AE" } },
-    { symbol: "CNY", name: "Chinese Yuan", category: "currency", unit: "Toman", price: "28,540", delta: "0", dir: "flat", icon: { type: "flag", file: "CN" } },
-    { symbol: "TRY", name: "Turkish Lira", category: "currency", unit: "Toman", price: "4,055", delta: "0", dir: "flat", icon: { type: "flag", file: "TR" } },
-    { symbol: "RUB", name: "Russian Ruble", category: "currency", unit: "Toman", price: "2,395", delta: "0", dir: "flat", icon: { type: "flag", file: "RU" } },
-    { symbol: "CAD", name: "Canadian Dollar", category: "currency", unit: "Toman", price: "137,210", delta: "0", dir: "flat", icon: { type: "flag", file: "CA" } },
-    { symbol: "CHF", name: "Swiss Franc", category: "currency", unit: "Toman", price: "237,670", delta: "0", dir: "flat", icon: { type: "flag", file: "CH" } },
-    { symbol: "MEXUSD", name: "Exchange Dollar", category: "currency", unit: "Toman", price: "132,507", delta: "0", dir: "flat", icon: { type: "glyph", text: "$", color: "#D9480F" } },
-
-    { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "Toman", price: "185M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
-    { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "Toman", price: "18.36M", delta: "0", dir: "flat", icon: { type: "gold", kind: "bar" } },
-    { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "USD", price: "4,056", delta: "+4.87", dir: "up", icon: { type: "gold", kind: "globe" } },
-    { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "Toman", price: "180M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
-    { symbol: "AZADI1_2", name: "Half Azadi Coin", category: "gold", unit: "Toman", price: "94.5M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
-    { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "Toman", price: "53M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
-    { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "Toman", price: "27M", delta: "0", dir: "flat", icon: { type: "gold", kind: "coin" } },
-    { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "Toman", price: "79.55M", delta: "0", dir: "flat", icon: { type: "gold", kind: "bar" } },
-
-    { symbol: "USDT", name: "Tether", category: "crypto", unit: "Toman", price: "192,199", delta: "+538.16", dir: "up", icon: { type: "coin", file: "usdt" } },
-    { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "USDT", price: "63,896.1", delta: "+415.32", dir: "up", icon: { type: "coin", file: "btc" } },
-    { symbol: "ETH", name: "Ethereum", category: "crypto", unit: "USDT", price: "1,871.15", delta: "-12.72", dir: "down", icon: { type: "coin", file: "eth" } },
-    { symbol: "XRP", name: "Ripple", category: "crypto", unit: "USDT", price: "1.08", delta: "0", dir: "flat", icon: { type: "coin", file: "xrp" } },
-    { symbol: "BNB", name: "Binance Coin", category: "crypto", unit: "USDT", price: "591.97", delta: "+3.14", dir: "up", icon: { type: "coin", file: "bnb" } },
-    { symbol: "BCH", name: "Bitcoin Cash", category: "crypto", unit: "USDT", price: "214.58", delta: "+0.86", dir: "up", icon: { type: "coin", file: "bch" } },
-    { symbol: "TRX", name: "Tron", category: "crypto", unit: "USDT", price: "0.3302", delta: "0", dir: "flat", icon: { type: "coin", file: "trx" } },
-    { symbol: "LTC", name: "Litecoin", category: "crypto", unit: "USDT", price: "44.52", delta: "-0.33", dir: "down", icon: { type: "coin", file: "ltc" } },
-    { symbol: "DOGE", name: "Dogecoin", category: "crypto", unit: "USDT", price: "0.0706", delta: "0", dir: "flat", icon: { type: "coin", file: "doge" } },
-    { symbol: "SOL", name: "Solana", category: "crypto", unit: "USDT", price: "73.94", delta: "+0.25", dir: "up", icon: { type: "coin", file: "sol" } }
-  ];
-
-  var GOLD_GLYPHS = {
-    coin: '<circle cx="12" cy="12" r="8" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.2"/><path d="M12 9.3v5.4M10.3 10.5l3.4 3M13.7 10.5l-3.4 3" stroke="white" stroke-width="1" stroke-linecap="round"/>',
-    bar: '<path d="M7.5 16.5 9 8h6l1.5 8.5H7.5Z" fill="white" fill-opacity="0.92"/>',
-    globe: '<circle cx="12" cy="12" r="7" stroke="white" stroke-width="1.4"/><ellipse cx="12" cy="12" rx="3" ry="7" stroke="white" stroke-width="1.1"/><path d="M5.3 12h13.4" stroke="white" stroke-width="1.1"/>'
-  };
-
-  function iconHtml(icon) {
-    if (icon.type === "flag") return '<img class="icon flag" src="flags/' + icon.file + '.svg" alt="" />';
-    if (icon.type === "coin") return '<img class="icon coin" src="crypto/' + icon.file + '.svg" alt="" />';
-    if (icon.type === "gold") {
-      return '<span class="icon gold" style="background:var(--gold)"><svg viewBox="0 0 24 24" fill="none">' + GOLD_GLYPHS[icon.kind] + '</svg></span>';
-    }
-    return '<span class="icon glyph" style="background:' + icon.color + '">' + icon.text + '</span>';
-  }
-
-  function arrow(dir) { return dir === "up" ? "&#9650; " : dir === "down" ? "&#9660; " : ""; }
-
-  // ---- Hidden-instruments preference (localStorage) ----
-  var STORAGE_KEY = "gheymat:hidden-symbols";
-  // First-time default: only Tether and Bitcoin shown in Crypto.
-  var DEFAULT_HIDDEN = ITEMS.filter(function (i) {
-    return i.category === "crypto" && i.symbol !== "USDT" && i.symbol !== "BITCOIN";
-  }).map(function (i) { return i.symbol; });
-
-  function readHidden() {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return DEFAULT_HIDDEN;
-    try {
-      var arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : DEFAULT_HIDDEN;
-    } catch (e) { return DEFAULT_HIDDEN; }
-  }
-  var hidden = {};
-  readHidden().forEach(function (s) { hidden[s] = true; });
-  function persistHidden() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.keys(hidden))); } catch (e) {}
-  }
-
-  var currentFilter = "all";
-
-  function render() {
-    var board = document.getElementById("board");
-    var empty = document.getElementById("emptyState");
-    board.innerHTML = "";
-    var cats = currentFilter === "all" ? CATEGORIES : [currentFilter];
-    var any = false;
-    cats.forEach(function (cat) {
-      var items = ITEMS.filter(function (i) { return i.category === cat && !hidden[i.symbol]; });
-      if (!items.length) return;
-      any = true;
-      var section = document.createElement("section");
-      section.className = "cat";
-      var h2 = document.createElement("h2");
-      h2.textContent = CATEGORY_LABELS[cat];
-      section.appendChild(h2);
-      var grid = document.createElement("div");
-      grid.className = "grid";
-      items.forEach(function (item) {
-        var card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML =
-          '<div class="top">' + iconHtml(item.icon) +
-          '<div class="meta"><div class="name">' + item.name + '</div><div class="symbol num">' + item.symbol + '</div></div></div>' +
-          '<div class="delta num ' + item.dir + '">' + arrow(item.dir) + item.delta + '</div>' +
-          '<div class="price num">' + item.price + '<span class="unit">' + item.unit + '</span></div>';
-        grid.appendChild(card);
-      });
-      section.appendChild(grid);
-      board.appendChild(section);
-    });
-    empty.style.display = any ? "none" : "block";
-  }
-
-  document.getElementById("filters").addEventListener("click", function (e) {
-    var btn = e.target.closest("button[data-filter]");
-    if (!btn) return;
-    document.querySelectorAll("#filters .pill").forEach(function (b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    currentFilter = btn.getAttribute("data-filter");
-    render();
-  });
-  document.querySelector('[data-filter="all"]').classList.add("active");
-
-  render();
-
-  // ---- Settings panel ----
-  var backdrop = document.getElementById("modalBackdrop");
-  var modalBody = document.getElementById("modalBody");
-
-  function renderModal() {
-    modalBody.innerHTML = "";
-    CATEGORIES.forEach(function (cat) {
-      var h3 = document.createElement("h3");
-      h3.textContent = CATEGORY_LABELS[cat];
-      modalBody.appendChild(h3);
-      ITEMS.filter(function (i) { return i.category === cat; }).forEach(function (item) {
-        var row = document.createElement("div");
-        row.className = "toggle-row";
-        var visible = !hidden[item.symbol];
-        row.innerHTML =
-          '<span>' + item.name + '</span>' +
-          '<button class="switch' + (visible ? ' on' : '') + '" data-symbol="' + item.symbol + '" role="switch" aria-checked="' + visible + '"><span class="knob"></span></button>';
-        modalBody.appendChild(row);
-      });
-    });
-  }
-
-  function openModal() {
-    renderModal();
-    backdrop.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-  function closeModal() {
-    backdrop.classList.remove("open");
-    document.body.style.overflow = "";
-  }
-
-  document.getElementById("settingsBtn").addEventListener("click", openModal);
-  document.getElementById("modalClose").addEventListener("click", closeModal);
-  backdrop.addEventListener("click", function (e) {
-    if (e.target === backdrop) closeModal();
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeModal();
-  });
-  modalBody.addEventListener("click", function (e) {
-    var btn = e.target.closest(".switch");
-    if (!btn) return;
-    var symbol = btn.getAttribute("data-symbol");
-    if (hidden[symbol]) delete hidden[symbol];
-    else hidden[symbol] = true;
-    persistHidden();
-    btn.classList.toggle("on");
-    btn.setAttribute("aria-checked", String(!hidden[symbol]));
-    render();
-  });
-  document.getElementById("showAllBtn").addEventListener("click", function () {
-    hidden = {};
-    persistHidden();
-    renderModal();
-    render();
-  });
-
-  // Standalone PWA detection — flips on the glass theme and hides web-only chrome.
-  var isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-  if (isStandalone) {
-    document.documentElement.classList.add("standalone");
-  }
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(function () {});
-  }
-</script>
+  <script>
+    location.replace("https://gheymat.vercel.app/");
+  </script>
 </body>
 </html>
