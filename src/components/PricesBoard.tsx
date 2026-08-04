@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
 import SettingsPanel from "./SettingsPanel";
-import { CATEGORY_LABELS, SYMBOLS, type SymbolMeta, type Category } from "@/lib/symbols";
+import { CATEGORY_LABELS, SYMBOL_MAP, SYMBOLS, UNIT_LABELS, type SymbolMeta, type Category } from "@/lib/symbols";
 import type { PriceItem, PricesResult } from "@/lib/baha24";
 import { useHiddenSymbols } from "@/lib/useHiddenSymbols";
 import { usePinnedSymbols } from "@/lib/usePinnedSymbols";
+import { usePriceAlerts } from "@/lib/usePriceAlerts";
+import { useBooleanSetting } from "@/lib/useBooleanSetting";
+import { formatPrice } from "@/lib/format";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
 const FILTERS: Array<Category | "all"> = ["all", ...CATEGORIES];
@@ -23,6 +26,8 @@ export default function PricesBoard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { hidden, toggle, showAll } = useHiddenSymbols();
   const { pinned, toggle: togglePin } = usePinnedSymbols();
+  const { alerts, setAlert, clearAlert } = usePriceAlerts();
+  const [showHighLow, setShowHighLow] = useBooleanSetting("gheymat:show-high-low", false);
   const [history, setHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
@@ -58,6 +63,27 @@ export default function PricesBoard() {
     };
   }, []);
 
+  // Fires a one-shot browser notification when a price crosses a set
+  // alert target. Only works while this tab/app is open and polling —
+  // there's no server-side push infrastructure behind this.
+  useEffect(() => {
+    if (!data) return;
+    for (const item of data.items) {
+      const alert = alerts[item.symbol];
+      if (!alert) continue;
+      const crossed = alert.direction === "above" ? item.price >= alert.target : item.price <= alert.target;
+      if (!crossed) continue;
+
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        const meta = SYMBOL_MAP[item.symbol];
+        new Notification(`${meta?.name ?? item.symbol} price alert`, {
+          body: `Now ${formatPrice(item.price)} ${meta ? UNIT_LABELS[meta.unit] : ""} — crossed your target of ${formatPrice(alert.target)}`,
+        });
+      }
+      clearAlert(item.symbol);
+    }
+  }, [data, alerts, clearAlert]);
+
   const byId = new Map<string, PriceItem>((data?.items ?? []).map((i) => [i.symbol, i]));
   const visibleCategories = filter === "all" ? CATEGORIES : [filter];
 
@@ -73,6 +99,10 @@ export default function PricesBoard() {
         history={history[meta.symbol] ?? []}
         pinned={pinned.has(meta.symbol)}
         onTogglePin={() => togglePin(meta.symbol)}
+        showHighLow={showHighLow}
+        alert={alerts[meta.symbol]}
+        onSetAlert={(alert) => setAlert(meta.symbol, alert)}
+        onClearAlert={() => clearAlert(meta.symbol)}
       />
     );
   }
@@ -151,6 +181,8 @@ export default function PricesBoard() {
         hidden={hidden}
         onToggle={toggle}
         onShowAll={showAll}
+        showHighLow={showHighLow}
+        onToggleHighLow={() => setShowHighLow(!showHighLow)}
       />
     </div>
   );

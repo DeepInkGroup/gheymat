@@ -5,18 +5,41 @@ import { CATEGORY_LABELS, SYMBOLS, type Category } from "@/lib/symbols";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
 
+function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <span
+      role="switch"
+      aria-checked={on}
+      onClick={onClick}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+        on ? "bg-up" : "bg-border"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+          on ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </span>
+  );
+}
+
 export default function SettingsPanel({
   open,
   onClose,
   hidden,
   onToggle,
   onShowAll,
+  showHighLow,
+  onToggleHighLow,
 }: {
   open: boolean;
   onClose: () => void;
   hidden: Set<string>;
   onToggle: (symbol: string) => void;
   onShowAll: () => void;
+  showHighLow: boolean;
+  onToggleHighLow: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -51,6 +74,14 @@ export default function SettingsPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
+          <div className="mb-4">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Display</h3>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+              <span className="text-sm text-foreground">Session high / low badge</span>
+              <Switch on={showHighLow} onClick={onToggleHighLow} />
+            </label>
+          </div>
+
           {CATEGORIES.map((cat) => (
             <div key={cat} className="mb-4 last:mb-0">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -65,20 +96,7 @@ export default function SettingsPanel({
                       className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background"
                     >
                       <span className="text-sm text-foreground">{meta.name}</span>
-                      <span
-                        role="switch"
-                        aria-checked={visible}
-                        onClick={() => onToggle(meta.symbol)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                          visible ? "bg-up" : "bg-border"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                            visible ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </span>
+                      <Switch on={visible} onClick={() => onToggle(meta.symbol)} />
                     </label>
                   );
                 })}
