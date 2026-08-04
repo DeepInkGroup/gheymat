@@ -5,12 +5,13 @@ import Icon from "./Icon";
 import Sparkline from "./Sparkline";
 import type { SymbolMeta } from "@/lib/symbols";
 import { UNIT_LABELS } from "@/lib/symbols";
-import { formatDelta, formatPrice } from "@/lib/format";
+import { formatDelta, formatPrice, formatUpdatedAt } from "@/lib/format";
 
 export default function PriceCard({
   meta,
   price,
   changePercent,
+  updatedAt,
   history,
   pinned,
   onTogglePin,
@@ -18,6 +19,7 @@ export default function PriceCard({
   meta: SymbolMeta;
   price: number;
   changePercent: number | null;
+  updatedAt: string | null;
   history: number[];
   pinned: boolean;
   onTogglePin: () => void;
@@ -35,6 +37,7 @@ export default function PriceCard({
   }, [price]);
 
   const delta = formatDelta(price, changePercent);
+  const updated = formatUpdatedAt(updatedAt);
 
   return (
     <div
@@ -79,6 +82,7 @@ export default function PriceCard({
         {formatPrice(price)}
         <span className="ms-1.5 text-xs font-normal text-muted">{UNIT_LABELS[meta.unit]}</span>
       </div>
+      {updated && <div className="num mt-1 text-[0.65rem] text-muted">Updated {updated}</div>}
     </div>
   );
 }

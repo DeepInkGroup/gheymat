@@ -69,6 +69,7 @@ export default function PricesBoard() {
         meta={meta}
         price={item?.price ?? 0}
         changePercent={item?.changePercent ?? null}
+        updatedAt={item?.updatedAt ?? null}
         history={history[meta.symbol] ?? []}
         pinned={pinned.has(meta.symbol)}
         onTogglePin={() => togglePin(meta.symbol)}
