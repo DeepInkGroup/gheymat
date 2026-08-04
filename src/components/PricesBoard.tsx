@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceRow from "./PriceRow";
 import SettingsPanel from "./SettingsPanel";
@@ -22,12 +22,16 @@ const POLL_MS = 10_000;
 // session — there's no backend history store, so it starts empty on load.
 const MAX_HISTORY_POINTS = 60;
 // Minimum |% change| between two consecutive polls (10s apart) to count
-// as a "big move" worth a sound cue.
+// as a "big move" for the sound cue.
 const SOUND_THRESHOLD_PCT = 0.3;
+// Notifications are more intrusive than a sound cue, so they need a
+// clearly bigger move before firing.
+const NOTIFY_THRESHOLD_PCT = 0.5;
 
 export default function PricesBoard() {
   const [data, setData] = useState<PricesResult | null>(null);
   const [error, setError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -39,11 +43,12 @@ export default function PricesBoard() {
   const [showPercentDelta, setShowPercentDelta] = useBooleanSetting("gheymat:show-percent-delta", false);
   const [compactView, setCompactView] = useBooleanSetting("gheymat:compact-view", false);
   const [soundEnabled, setSoundEnabled] = useBooleanSetting("gheymat:sound-enabled", false);
+  const [notifyEnabled, setNotifyEnabled] = useBooleanSetting("gheymat:notify-enabled", false);
   const [history, setHistory] = useState<Record<string, number[]>>({});
   const playMoveSound = useMoveSound(soundEnabled);
 
   // Read via refs (not the state directly) inside the poll loop below, so
-  // the effect can keep its [] deps — no interval reset every time a
+  // loadPrices can stay a stable callback — no interval reset every time a
   // setting or hidden-symbol changes — while still comparing against the
   // truly latest values instead of a stale closure.
   const hiddenRef = useRef(hidden);
@@ -54,52 +59,97 @@ export default function PricesBoard() {
   useEffect(() => {
     historyRef.current = history;
   }, [history]);
+  const notifyEnabledRef = useRef(notifyEnabled);
+  useEffect(() => {
+    notifyEnabledRef.current = notifyEnabled;
+  }, [notifyEnabled]);
+
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const loadPrices = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/prices");
+      if (!res.ok) throw new Error("bad response");
+      const json: PricesResult = await res.json();
+      if (!mountedRef.current) return;
+
+      let biggestMove: { symbol: string; pct: number } | null = null;
+      for (const item of json.items) {
+        if (hiddenRef.current.has(item.symbol)) continue;
+        const prevArr = historyRef.current[item.symbol];
+        const prevPrice = prevArr?.[prevArr.length - 1];
+        if (prevPrice === undefined || prevPrice === 0) continue;
+        const pct = ((item.price - prevPrice) / prevPrice) * 100;
+        if (biggestMove === null || Math.abs(pct) > Math.abs(biggestMove.pct)) {
+          biggestMove = { symbol: item.symbol, pct };
+        }
+      }
+
+      if (biggestMove && Math.abs(biggestMove.pct) >= SOUND_THRESHOLD_PCT) {
+        playMoveSound(biggestMove.pct > 0 ? "up" : "down");
+      }
+
+      if (
+        biggestMove &&
+        Math.abs(biggestMove.pct) >= NOTIFY_THRESHOLD_PCT &&
+        notifyEnabledRef.current &&
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      ) {
+        const meta = SYMBOL_MAP[biggestMove.symbol];
+        const item = json.items.find((i) => i.symbol === biggestMove!.symbol);
+        if (meta && item) {
+          const sign = biggestMove.pct > 0 ? "+" : "";
+          new Notification(`${meta.name} moved sharply`, {
+            body: `${sign}${biggestMove.pct.toFixed(2)}% — now ${formatPrice(item.price)} ${UNIT_LABELS[meta.unit]}`,
+            tag: "gheymat-big-move",
+          });
+        }
+      }
+
+      setHistory((prev) => {
+        const next = { ...prev };
+        for (const item of json.items) {
+          const arr = next[item.symbol] ?? [];
+          next[item.symbol] = [...arr, item.price].slice(-MAX_HISTORY_POINTS);
+        }
+        return next;
+      });
+      setData(json);
+      setError(false);
+    } catch {
+      if (mountedRef.current) setError(true);
+    } finally {
+      if (mountedRef.current) setRefreshing(false);
+    }
+  }, [playMoveSound]);
 
   useEffect(() => {
-    let cancelled = false;
+    (async () => {
+      await loadPrices();
+    })();
+    const id = setInterval(loadPrices, POLL_MS);
+    return () => clearInterval(id);
+  }, [loadPrices]);
 
-    async function load() {
+  async function handleToggleNotify() {
+    const next = !notifyEnabled;
+    if (next && "Notification" in window && Notification.permission === "default") {
       try {
-        const res = await fetch("/api/prices");
-        if (!res.ok) throw new Error("bad response");
-        const json: PricesResult = await res.json();
-        if (!cancelled) {
-          let biggestMovePct: number | null = null;
-          for (const item of json.items) {
-            if (hiddenRef.current.has(item.symbol)) continue;
-            const prevArr = historyRef.current[item.symbol];
-            const prevPrice = prevArr?.[prevArr.length - 1];
-            if (prevPrice === undefined || prevPrice === 0) continue;
-            const pct = ((item.price - prevPrice) / prevPrice) * 100;
-            if (Math.abs(pct) >= SOUND_THRESHOLD_PCT && (biggestMovePct === null || Math.abs(pct) > Math.abs(biggestMovePct))) {
-              biggestMovePct = pct;
-            }
-          }
-          if (biggestMovePct !== null) playMoveSound(biggestMovePct > 0 ? "up" : "down");
-
-          setHistory((prev) => {
-            const next = { ...prev };
-            for (const item of json.items) {
-              const arr = next[item.symbol] ?? [];
-              next[item.symbol] = [...arr, item.price].slice(-MAX_HISTORY_POINTS);
-            }
-            return next;
-          });
-          setData(json);
-          setError(false);
-        }
+        await Notification.requestPermission();
       } catch {
-        if (!cancelled) setError(true);
+        // ignore
       }
     }
-
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [playMoveSound]);
+    setNotifyEnabled(next);
+  }
 
   // Fires a one-shot browser notification when a price crosses a set
   // alert target. Only works while this tab/app is open and polling —
@@ -210,12 +260,34 @@ export default function PricesBoard() {
         <div className="flex shrink-0 items-center gap-3">
           {error && !data && <span className="text-xs text-down">Failed to load data</span>}
           <button
+            onClick={() => loadPrices()}
+            aria-label="Refresh prices"
+            disabled={refreshing}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+          >
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              className={refreshing ? "animate-spin" : ""}
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 4v5h-5" />
+            </svg>
+          </button>
+          <button
             onClick={() => {
               if (searchOpen) setSearchQuery("");
               setSearchOpen((open) => !open);
             }}
             aria-label={searchOpen ? "Close search" : "Search instruments"}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+            className="hide-standalone flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
           >
             {searchOpen ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
@@ -298,6 +370,8 @@ export default function PricesBoard() {
         onToggleCompactView={() => setCompactView(!compactView)}
         soundEnabled={soundEnabled}
         onToggleSound={() => setSoundEnabled(!soundEnabled)}
+        notifyEnabled={notifyEnabled}
+        onToggleNotify={handleToggleNotify}
       />
     </div>
   );

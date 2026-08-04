@@ -38,6 +38,8 @@ export default function SettingsPanel({
   onToggleCompactView,
   soundEnabled,
   onToggleSound,
+  notifyEnabled,
+  onToggleNotify,
 }: {
   open: boolean;
   onClose: () => void;
@@ -52,6 +54,8 @@ export default function SettingsPanel({
   onToggleCompactView: () => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
+  notifyEnabled: boolean;
+  onToggleNotify: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -100,12 +104,19 @@ export default function SettingsPanel({
               <span className="text-sm text-foreground">Compact list view</span>
               <Switch on={compactView} onClick={onToggleCompactView} />
             </label>
-            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+            <label className="hide-standalone flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
               <span className="text-sm text-foreground">
                 Sound on big moves
                 <span className="block text-xs text-muted">Website only — silent when installed as an app</span>
               </span>
               <Switch on={soundEnabled} onClick={onToggleSound} />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+              <span className="text-sm text-foreground">
+                Big move notifications
+                <span className="block text-xs text-muted">Notifies you when any instrument moves sharply</span>
+              </span>
+              <Switch on={notifyEnabled} onClick={onToggleNotify} />
             </label>
           </div>
 
