@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrices } from "@/lib/baha24";
-import { isHistoryConfigured, recordSnapshot } from "@/lib/history-db";
+import { isHistoryWriteConfigured, recordSnapshot } from "@/lib/history-db";
 
 /**
- * Hit on a schedule by Vercel Cron (see vercel.json). Records the current
- * live price of every instrument into the history store so cards can show
- * real multi-day trends instead of only what's built up in a single
- * browser session. Only writes on a genuinely fresh live fetch — a
- * cache/mock fallback would otherwise duplicate a stale point.
+ * Hit once a day by Vercel Cron (see vercel.json — more frequent than
+ * daily isn't allowed on the Hobby plan and fails the whole deployment).
+ * Appends today's price to data/Database{Category}.json and commits the
+ * change straight to the repo, which triggers the normal git-push
+ * auto-deploy — that's the actual persistence mechanism, since Vercel's
+ * serverless filesystem doesn't survive between invocations.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -15,8 +16,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isHistoryConfigured()) {
-    return NextResponse.json({ skipped: "history store not configured" }, { status: 200 });
+  if (!isHistoryWriteConfigured()) {
+    return NextResponse.json({ skipped: "GH_COMMIT_TOKEN not configured" }, { status: 200 });
   }
 
   const result = await getPrices();
@@ -24,6 +25,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ skipped: `source was "${result.source}", not live` }, { status: 200 });
   }
 
-  await recordSnapshot(result.items);
-  return NextResponse.json({ recorded: result.items.length, at: result.fetchedAt });
+  const committed = await recordSnapshot(result.items);
+  return NextResponse.json({ committed, count: result.items.length, at: result.fetchedAt });
 }

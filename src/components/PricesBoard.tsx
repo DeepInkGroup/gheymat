@@ -25,6 +25,8 @@ export default function PricesBoard() {
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { hidden, toggle, showAll } = useHiddenSymbols();
   const { pinned, toggle: togglePin } = usePinnedSymbols();
   const { alerts, setAlert, clearAlert } = usePriceAlerts();
@@ -128,6 +130,13 @@ export default function PricesBoard() {
 
   const listClassName = compactView ? "flex flex-col gap-2" : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3";
 
+  const query = searchQuery.trim().toLowerCase();
+  const searchResults = query
+    ? SYMBOLS.filter(
+        (s) => !hidden.has(s.symbol) && (s.name.toLowerCase().includes(query) || s.symbol.toLowerCase().includes(query))
+      )
+    : null;
+
   const pinnedSymbols = SYMBOLS.filter((s) => pinned.has(s.symbol) && !hidden.has(s.symbol));
   const nothingVisible =
     pinnedSymbols.length === 0 &&
@@ -139,26 +148,57 @@ export default function PricesBoard() {
     <div className="flex flex-1 flex-col">
       <div className="glass sticky top-[3.5rem] z-10 -mx-4 mb-6 flex items-center gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:mx-0 sm:rounded-2xl sm:border sm:px-3">
         <div className="flex flex-1 items-center gap-2 overflow-x-auto">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                filter === f
-                  ? "bg-foreground text-background"
-                  : "bg-surface text-muted hover:text-foreground"
-              }`}
-            >
-              {f === "all" ? "All" : CATEGORY_LABELS[f]}
-            </button>
-          ))}
+          {searchOpen ? (
+            <input
+              autoFocus
+              type="text"
+              inputMode="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search instruments…"
+              className="w-full rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-foreground outline-none placeholder:text-muted"
+            />
+          ) : (
+            FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  filter === f
+                    ? "bg-foreground text-background"
+                    : "bg-surface text-muted hover:text-foreground"
+                }`}
+              >
+                {f === "all" ? "All" : CATEGORY_LABELS[f]}
+              </button>
+            ))
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-3">
           {error && !data && <span className="text-xs text-down">Failed to load data</span>}
           <button
+            onClick={() => {
+              if (searchOpen) setSearchQuery("");
+              setSearchOpen((open) => !open);
+            }}
+            aria-label={searchOpen ? "Close search" : "Search instruments"}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+          >
+            {searchOpen ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+          <button
             onClick={() => setSettingsOpen(true)}
             aria-label="Customize instruments"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
               <circle cx="12" cy="12" r="3" />
@@ -169,28 +209,43 @@ export default function PricesBoard() {
       </div>
 
       <div className="flex flex-col gap-8">
-        {pinnedSymbols.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-sm font-semibold text-muted">Pinned</h2>
-            <div className={listClassName}>{pinnedSymbols.map(renderCard)}</div>
-          </section>
-        )}
-
-        {visibleCategories.map((cat) => {
-          const symbols = SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol) && !pinned.has(s.symbol));
-          if (symbols.length === 0) return null;
-          return (
-            <section key={cat}>
-              <h2 className="mb-3 text-sm font-semibold text-muted">{CATEGORY_LABELS[cat]}</h2>
-              <div className={listClassName}>{symbols.map(renderCard)}</div>
+        {searchResults ? (
+          searchResults.length > 0 ? (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold text-muted">
+                {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
+              </h2>
+              <div className={listClassName}>{searchResults.map(renderCard)}</div>
             </section>
-          );
-        })}
+          ) : (
+            <p className="py-12 text-center text-sm text-muted">No instruments match &quot;{searchQuery.trim()}&quot;.</p>
+          )
+        ) : (
+          <>
+            {pinnedSymbols.length > 0 && (
+              <section>
+                <h2 className="mb-3 text-sm font-semibold text-muted">Pinned</h2>
+                <div className={listClassName}>{pinnedSymbols.map(renderCard)}</div>
+              </section>
+            )}
 
-        {nothingVisible && (
-          <p className="py-12 text-center text-sm text-muted">
-            Everything&apos;s hidden. Tap the settings icon to bring instruments back.
-          </p>
+            {visibleCategories.map((cat) => {
+              const symbols = SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol) && !pinned.has(s.symbol));
+              if (symbols.length === 0) return null;
+              return (
+                <section key={cat}>
+                  <h2 className="mb-3 text-sm font-semibold text-muted">{CATEGORY_LABELS[cat]}</h2>
+                  <div className={listClassName}>{symbols.map(renderCard)}</div>
+                </section>
+              );
+            })}
+
+            {nothingVisible && (
+              <p className="py-12 text-center text-sm text-muted">
+                Everything&apos;s hidden. Tap the settings icon to bring instruments back.
+              </p>
+            )}
+          </>
         )}
       </div>
 

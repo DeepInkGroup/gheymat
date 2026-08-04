@@ -21,7 +21,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - [`src/lib/symbols.ts`](src/lib/symbols.ts) — metadata for all 28 tracked instruments (name, category, unit, icon/flag, brand color).
 - [`src/lib/useHiddenSymbols.ts`](src/lib/useHiddenSymbols.ts) — per-instrument show/hide preference (settings panel), persisted to `localStorage`. Crypto defaults to only Tether + Bitcoin shown; everything else starts hidden.
 - [`src/app/globals.css`](src/app/globals.css) — design tokens; glassmorphism overrides activate automatically when the app detects it's running as an installed iOS PWA (`display-mode: standalone`).
-- [`src/lib/history-db.ts`](src/lib/history-db.ts) + [`src/app/api/cron/snapshot/route.ts`](src/app/api/cron/snapshot/route.ts) — a Vercel Cron job (see `vercel.json`) snapshots every live price into Upstash Redis on a schedule; [`src/app/api/history/[symbol]/route.ts`](<src/app/api/history/[symbol]/route.ts>) serves it back for the "History" view on each card. With no Redis configured, both degrade gracefully (history view just says "not set up yet") instead of breaking.
+- [`data/DatabaseCurrency.json`](data/DatabaseCurrency.json), [`DatabaseGold.json`](data/DatabaseGold.json), [`DatabaseCrypto.json`](data/DatabaseCrypto.json) — price history, one JSON file per category (`{ "USD": [{"t":..,"p":..}, ...] }`). Plain files committed to the repo, not a database service — Vercel's serverless filesystem doesn't persist writes between requests, so the only durable way to "save to a local file" here is to have the cron job commit the updated file straight to git, which then redeploys with the new data baked in. [`src/lib/history-db.ts`](src/lib/history-db.ts) reads them from the deployed bundle; [`src/lib/githubRepo.ts`](src/lib/githubRepo.ts) does the actual commit via GitHub's API. [`src/app/api/cron/snapshot/route.ts`](src/app/api/cron/snapshot/route.ts) runs it daily (see `vercel.json`); [`src/app/api/history/[symbol]/route.ts`](<src/app/api/history/[symbol]/route.ts>) serves it to the "History" view on each card. With no `GH_COMMIT_TOKEN` configured, the cron job just skips (files stay empty) instead of breaking.
 
 ### API token (optional)
 
@@ -35,13 +35,14 @@ No code changes needed — requests automatically switch to sending an `Authoriz
 
 ### Price history (optional)
 
-To enable the "History" view (multi-day chart per instrument) instead of "not set up yet":
+To enable the "History" view (multi-day chart per instrument) instead of "not enough data yet":
 
-1. In the Vercel dashboard, open this project → **Storage** tab → **Create Database** → **Upstash for Redis** (or "KV") → connect it to this project. Vercel adds the `KV_REST_API_URL` / `KV_REST_API_TOKEN` env vars and redeploys automatically.
-2. (Recommended) Set a `CRON_SECRET` env var to any random string — it's checked against the `Authorization` header on the cron request so random visitors can't trigger snapshot writes.
-3. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled.
+1. Generate a GitHub **fine-grained personal access token** ([github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)) scoped to **only this repository**, with **Contents: Read and write** permission. A fine-grained token limited to this one repo is much safer than a classic PAT with broad account access.
+2. In Vercel → this project → **Settings → Environment Variables**, add `GH_COMMIT_TOKEN` with that token's value, then redeploy.
+3. (Recommended) Also set `CRON_SECRET` to any random string — it's checked against the `Authorization` header on the cron request so random visitors can't trigger snapshot writes.
+4. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled.
 
-`vercel.json` schedules one snapshot a day (`0 3 * * *`) — that's the hard limit on Vercel's Hobby plan (more frequent expressions **fail the entire deployment**, not just the cron job). Upgrade to Pro for per-minute cron if you want finer-grained history. History starts empty and fills in one point per day as the cron job runs — there's no way to backfill the past.
+Commits show up authored by whichever GitHub account owns the token — consider a dedicated bot account if you'd rather it not be your personal one. `vercel.json` schedules one snapshot a day (`0 3 * * *`) — that's the hard limit on Vercel's Hobby plan (more frequent expressions **fail the entire deployment**, not just the cron job — this bit us once already). Upgrade to Pro for per-minute cron if you want finer-grained history. History starts empty and fills in one point per day as the cron job runs and commits — there's no way to backfill the past.
 
 ## PWA on iPhone
 

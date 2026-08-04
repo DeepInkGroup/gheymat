@@ -29,7 +29,6 @@ export default function HistoryModal({
 }) {
   const [days, setDays] = useState(7);
   const [points, setPoints] = useState<HistoryPoint[] | null>(null);
-  const [configured, setConfigured] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export default function HistoryModal({
         const res = await fetch(`/api/history/${symbol}?days=${days}`);
         const json = await res.json();
         if (cancelled) return;
-        setConfigured(json.configured !== false);
         setPoints(json.points ?? []);
       } catch {
         if (!cancelled) setPoints([]);
@@ -124,11 +122,6 @@ export default function HistoryModal({
 
           {loading ? (
             <div className="flex h-[140px] items-center justify-center text-sm text-muted">Loading…</div>
-          ) : !configured ? (
-            <div className="flex h-[140px] flex-col items-center justify-center gap-1 px-4 text-center">
-              <p className="text-sm font-medium text-foreground">History isn&apos;t set up yet</p>
-              <p className="text-xs text-muted">This needs a database connected to the app.</p>
-            </div>
           ) : !hasEnough ? (
             <div className="flex h-[140px] flex-col items-center justify-center gap-1 px-4 text-center">
               <p className="text-sm font-medium text-foreground">Not enough data yet</p>
