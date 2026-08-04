@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
 import SettingsPanel from "./SettingsPanel";
-import { CATEGORY_LABELS, SYMBOLS, type Category } from "@/lib/symbols";
+import { CATEGORY_LABELS, SYMBOLS, type SymbolMeta, type Category } from "@/lib/symbols";
 import type { PriceItem, PricesResult } from "@/lib/baha24";
 import { useHiddenSymbols } from "@/lib/useHiddenSymbols";
+import { usePinnedSymbols } from "@/lib/usePinnedSymbols";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
 const FILTERS: Array<Category | "all"> = ["all", ...CATEGORIES];
@@ -21,6 +22,7 @@ export default function PricesBoard() {
   const [filter, setFilter] = useState<Category | "all">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { hidden, toggle, showAll } = useHiddenSymbols();
+  const { pinned, toggle: togglePin } = usePinnedSymbols();
   const [history, setHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
@@ -59,6 +61,28 @@ export default function PricesBoard() {
   const byId = new Map<string, PriceItem>((data?.items ?? []).map((i) => [i.symbol, i]));
   const visibleCategories = filter === "all" ? CATEGORIES : [filter];
 
+  function renderCard(meta: SymbolMeta) {
+    const item = byId.get(meta.symbol);
+    return (
+      <PriceCard
+        key={meta.symbol}
+        meta={meta}
+        price={item?.price ?? 0}
+        changePercent={item?.changePercent ?? null}
+        history={history[meta.symbol] ?? []}
+        pinned={pinned.has(meta.symbol)}
+        onTogglePin={() => togglePin(meta.symbol)}
+      />
+    );
+  }
+
+  const pinnedSymbols = SYMBOLS.filter((s) => pinned.has(s.symbol) && !hidden.has(s.symbol));
+  const nothingVisible =
+    pinnedSymbols.length === 0 &&
+    visibleCategories.every(
+      (cat) => SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol) && !pinned.has(s.symbol)).length === 0
+    );
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="glass sticky top-[3.5rem] z-10 -mx-4 mb-6 flex items-center gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:mx-0 sm:rounded-2xl sm:border sm:px-3">
@@ -93,30 +117,27 @@ export default function PricesBoard() {
       </div>
 
       <div className="flex flex-col gap-8">
+        {pinnedSymbols.length > 0 && (
+          <section>
+            <h2 className="mb-3 text-sm font-semibold text-muted">Pinned</h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {pinnedSymbols.map(renderCard)}
+            </div>
+          </section>
+        )}
+
         {visibleCategories.map((cat) => {
-          const symbols = SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol));
+          const symbols = SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol) && !pinned.has(s.symbol));
           if (symbols.length === 0) return null;
           return (
             <section key={cat}>
               <h2 className="mb-3 text-sm font-semibold text-muted">{CATEGORY_LABELS[cat]}</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {symbols.map((meta) => {
-                  const item = byId.get(meta.symbol);
-                  return (
-                    <PriceCard
-                      key={meta.symbol}
-                      meta={meta}
-                      price={item?.price ?? 0}
-                      changePercent={item?.changePercent ?? null}
-                      history={history[meta.symbol] ?? []}
-                    />
-                  );
-                })}
-              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{symbols.map(renderCard)}</div>
             </section>
           );
         })}
-        {visibleCategories.every((cat) => SYMBOLS.filter((s) => s.category === cat && !hidden.has(s.symbol)).length === 0) && (
+
+        {nothingVisible && (
           <p className="py-12 text-center text-sm text-muted">
             Everything&apos;s hidden. Tap the settings icon to bring instruments back.
           </p>

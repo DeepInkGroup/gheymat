@@ -1,4 +1,5 @@
 import BrandMark from "./BrandMark";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -8,6 +9,9 @@ export default function Header() {
         <div className="leading-tight">
           <div className="text-sm font-bold text-foreground">Gheymat</div>
           <div className="text-[0.65rem] text-muted">Live currency, gold &amp; crypto prices</div>
+        </div>
+        <div className="ms-auto">
+          <ThemeToggle />
         </div>
       </div>
     </header>

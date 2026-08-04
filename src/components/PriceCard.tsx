@@ -12,11 +12,15 @@ export default function PriceCard({
   price,
   changePercent,
   history,
+  pinned,
+  onTogglePin,
 }: {
   meta: SymbolMeta;
   price: number;
   changePercent: number | null;
   history: number[];
+  pinned: boolean;
+  onTogglePin: () => void;
 }) {
   const prevPrice = useRef(price);
   const [flash, setFlash] = useState<"up" | "down" | null>(null);
@@ -34,11 +38,24 @@ export default function PriceCard({
 
   return (
     <div
-      className={`glass rounded-2xl border border-border bg-surface p-4 shadow-sm backdrop-blur-md transition-colors duration-700 ${
+      className={`glass relative rounded-2xl border border-border bg-surface p-4 shadow-sm backdrop-blur-md transition-colors duration-700 ${
         flash === "up" ? "bg-up/10" : flash === "down" ? "bg-down/10" : ""
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <button
+        onClick={onTogglePin}
+        aria-label={pinned ? `Unpin ${meta.name}` : `Pin ${meta.name}`}
+        aria-pressed={pinned}
+        className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-colors ${
+          pinned ? "text-accent-gold" : "text-border hover:text-muted"
+        }`}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" aria-hidden>
+          <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      <div className="flex items-start justify-between gap-2 pe-6">
         <Icon meta={meta} />
         <div className="min-w-0 text-right">
           <div className="truncate text-sm font-semibold text-foreground">{meta.name}</div>

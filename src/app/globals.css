@@ -13,19 +13,17 @@
   --down: #e11d3f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0d10;
-    --surface: #14171c;
-    --foreground: #f3f4f6;
-    --muted: #8b8f98;
-    --border: rgba(255, 255, 255, 0.08);
-    --accent-currency: #6c8bff;
-    --accent-gold: #e8b93f;
-    --accent-crypto: #a78bfa;
-    --up: #34d766;
-    --down: #ff5470;
-  }
+html.dark {
+  --background: #0b0d10;
+  --surface: #14171c;
+  --foreground: #f3f4f6;
+  --muted: #8b8f98;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent-currency: #6c8bff;
+  --accent-gold: #e8b93f;
+  --accent-crypto: #a78bfa;
+  --up: #34d766;
+  --down: #ff5470;
 }
 
 @theme inline {
@@ -93,20 +91,18 @@ html.standalone .hide-standalone {
   display: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  html.standalone {
-    --muted: rgba(255, 255, 255, 0.68);
-    --border: rgba(255, 255, 255, 0.16);
-  }
+html.standalone.dark {
+  --muted: rgba(255, 255, 255, 0.68);
+  --border: rgba(255, 255, 255, 0.16);
+}
 
-  html.standalone body {
-    background: linear-gradient(160deg, #0b0d10 0%, #171335 50%, #06232f 100%);
-    background-attachment: fixed;
-  }
+html.standalone.dark body {
+  background: linear-gradient(160deg, #0b0d10 0%, #171335 50%, #06232f 100%);
+  background-attachment: fixed;
+}
 
-  html.standalone .glass {
-    background: rgba(38, 38, 48, 0.55) !important;
-    border-color: rgba(255, 255, 255, 0.14) !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  }
+html.standalone.dark .glass {
+  background: rgba(38, 38, 48, 0.55) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }

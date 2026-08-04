@@ -9,6 +9,10 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// Runs before first paint so a stored/manual theme choice never flashes
+// the wrong colors while the rest of the page hydrates.
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('gheymat:theme');var d=s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
+
 export const metadata: Metadata = {
   title: "Gheymat | Live Currency, Gold & Crypto Prices",
   description:
@@ -44,6 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       dir="ltr"
       className={`${inter.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <ServiceWorkerRegister />
