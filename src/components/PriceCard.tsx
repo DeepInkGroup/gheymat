@@ -104,7 +104,7 @@ export default function PriceCard({
           aria-label={pinned ? `Unpin ${meta.name}` : `Pin ${meta.name}`}
           aria-pressed={pinned}
           className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors ${
-            pinned ? "text-accent-gold" : "text-border hover:text-muted"
+            pinned ? "text-accent-gold" : "text-muted hover:text-foreground"
           }`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill={pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" aria-hidden>
@@ -116,7 +116,7 @@ export default function PriceCard({
           aria-label={`More actions for ${meta.name}`}
           aria-expanded={menuOpen}
           className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors ${
-            alert ? "text-accent-currency" : "text-border hover:text-muted"
+            alert ? "text-accent-currency" : "text-muted hover:text-foreground"
           }`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
