@@ -21,6 +21,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - [`src/lib/symbols.ts`](src/lib/symbols.ts) — metadata for all 28 tracked instruments (name, category, unit, icon/flag, brand color).
 - [`src/lib/useHiddenSymbols.ts`](src/lib/useHiddenSymbols.ts) — per-instrument show/hide preference (settings panel), persisted to `localStorage`. Crypto defaults to only Tether + Bitcoin shown; everything else starts hidden.
 - [`src/app/globals.css`](src/app/globals.css) — design tokens; glassmorphism overrides activate automatically when the app detects it's running as an installed iOS PWA (`display-mode: standalone`).
+- [`src/lib/history-db.ts`](src/lib/history-db.ts) + [`src/app/api/cron/snapshot/route.ts`](src/app/api/cron/snapshot/route.ts) — a Vercel Cron job (see `vercel.json`) snapshots every live price into Upstash Redis on a schedule; [`src/app/api/history/[symbol]/route.ts`](<src/app/api/history/[symbol]/route.ts>) serves it back for the "History" view on each card. With no Redis configured, both degrade gracefully (history view just says "not set up yet") instead of breaking.
 
 ### API token (optional)
 
@@ -31,6 +32,16 @@ BAHA24_API_TOKEN=your-token-here
 ```
 
 No code changes needed — requests automatically switch to sending an `Authorization: Bearer` header.
+
+### Price history (optional)
+
+To enable the "History" view (multi-day chart per instrument) instead of "not set up yet":
+
+1. In the Vercel dashboard, open this project → **Storage** tab → **Create Database** → **Upstash for Redis** (or "KV") → connect it to this project. Vercel adds the `KV_REST_API_URL` / `KV_REST_API_TOKEN` env vars and redeploys automatically.
+2. (Recommended) Set a `CRON_SECRET` env var to any random string — it's checked against the `Authorization` header on the cron request so random visitors can't trigger snapshot writes.
+3. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled (`vercel.json` asks for every 30 minutes; your plan may enforce a different minimum).
+
+History starts empty and fills in as the cron job runs — there's no way to backfill the past.
 
 ## PWA on iPhone
 

@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
 import Sparkline from "./Sparkline";
+import HistoryModal from "./HistoryModal";
 import type { SymbolMeta } from "@/lib/symbols";
 import { UNIT_LABELS } from "@/lib/symbols";
 import { formatDelta, formatPercentDelta, formatPrice, formatUpdatedAt } from "@/lib/format";
+import { createShareImage } from "@/lib/shareCard";
 import type { Alert } from "@/lib/usePriceAlerts";
 
 export default function PriceCard({
@@ -38,7 +40,9 @@ export default function PriceCard({
   const prevPrice = useRef(price);
   const [flash, setFlash] = useState<"up" | "down" | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [alertInput, setAlertInput] = useState("");
   const [alertDirection, setAlertDirection] = useState<"above" | "below">("above");
 
@@ -64,20 +68,51 @@ export default function PriceCard({
 
   async function handleShare() {
     const text = `${meta.name} (${meta.symbol}): ${formatPrice(price)} ${UNIT_LABELS[meta.unit]} (${delta.text}) — via Gheymat ${window.location.origin}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ text });
-      } catch {
-        // user cancelled — ignore
-      }
-      return;
-    }
+    setSharing(true);
     try {
+      const blob = await createShareImage({
+        name: meta.name,
+        symbol: meta.symbol,
+        price: formatPrice(price),
+        unit: UNIT_LABELS[meta.unit],
+        delta,
+      });
+      const file = blob ? new File([blob], `${meta.symbol}-gheymat.png`, { type: "image/png" }) : null;
+
+      if (file && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: `${meta.name} price`, text });
+          return;
+        } catch {
+          return; // user cancelled the share sheet — don't fall through to a copy
+        }
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch {
+          return;
+        }
+      }
+
+      if (file && typeof ClipboardItem !== "undefined") {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": file })]);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+          return;
+        } catch {
+          // fall through to text copy
+        }
+      }
+
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // ignore
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -170,12 +205,21 @@ export default function PriceCard({
 
       {menuOpen && (
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-          <button
-            onClick={handleShare}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-background py-1.5 text-xs font-medium text-foreground hover:bg-border/40"
-          >
-            {copied ? "Copied" : "Share"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleShare}
+              disabled={sharing}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-background py-1.5 text-xs font-medium text-foreground hover:bg-border/40 disabled:opacity-60"
+            >
+              {sharing ? "…" : copied ? "Copied" : "Share"}
+            </button>
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-background py-1.5 text-xs font-medium text-foreground hover:bg-border/40"
+            >
+              History
+            </button>
+          </div>
 
           <div className="flex items-center gap-1.5">
             <input
@@ -211,6 +255,15 @@ export default function PriceCard({
             )}
           </div>
         </div>
+      )}
+
+      {historyOpen && (
+        <HistoryModal
+          symbol={meta.symbol}
+          name={meta.name}
+          unit={UNIT_LABELS[meta.unit]}
+          onClose={() => setHistoryOpen(false)}
+        />
       )}
     </div>
   );
