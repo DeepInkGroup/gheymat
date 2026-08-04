@@ -32,6 +32,10 @@ export default function SettingsPanel({
   onShowAll,
   showHighLow,
   onToggleHighLow,
+  showPercentDelta,
+  onTogglePercentDelta,
+  compactView,
+  onToggleCompactView,
 }: {
   open: boolean;
   onClose: () => void;
@@ -40,6 +44,10 @@ export default function SettingsPanel({
   onShowAll: () => void;
   showHighLow: boolean;
   onToggleHighLow: () => void;
+  showPercentDelta: boolean;
+  onTogglePercentDelta: () => void;
+  compactView: boolean;
+  onToggleCompactView: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -79,6 +87,14 @@ export default function SettingsPanel({
             <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
               <span className="text-sm text-foreground">Session high / low badge</span>
               <Switch on={showHighLow} onClick={onToggleHighLow} />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+              <span className="text-sm text-foreground">Show change as %</span>
+              <Switch on={showPercentDelta} onClick={onTogglePercentDelta} />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+              <span className="text-sm text-foreground">Compact list view</span>
+              <Switch on={compactView} onClick={onToggleCompactView} />
             </label>
           </div>
 

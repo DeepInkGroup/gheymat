@@ -33,6 +33,14 @@ export function formatDelta(price: number, changePercent: number | null): Delta 
   return { text: `${sign}${compact}`, direction };
 }
 
+export function formatPercentDelta(changePercent: number | null): Delta {
+  if (changePercent === null) return { text: "—", direction: "flat" };
+  if (changePercent === 0) return { text: "0%", direction: "flat" };
+  const direction = changePercent > 0 ? "up" : "down";
+  const sign = changePercent > 0 ? "+" : "";
+  return { text: `${sign}${changePercent.toFixed(2)}%`, direction };
+}
+
 export function formatTime(iso: string): string {
   try {
     return new Intl.DateTimeFormat("en-US", {

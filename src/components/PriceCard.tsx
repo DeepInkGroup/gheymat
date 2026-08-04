@@ -5,7 +5,7 @@ import Icon from "./Icon";
 import Sparkline from "./Sparkline";
 import type { SymbolMeta } from "@/lib/symbols";
 import { UNIT_LABELS } from "@/lib/symbols";
-import { formatDelta, formatPrice, formatUpdatedAt } from "@/lib/format";
+import { formatDelta, formatPercentDelta, formatPrice, formatUpdatedAt } from "@/lib/format";
 import type { Alert } from "@/lib/usePriceAlerts";
 
 export default function PriceCard({
@@ -17,6 +17,7 @@ export default function PriceCard({
   pinned,
   onTogglePin,
   showHighLow,
+  showPercentDelta,
   alert,
   onSetAlert,
   onClearAlert,
@@ -29,6 +30,7 @@ export default function PriceCard({
   pinned: boolean;
   onTogglePin: () => void;
   showHighLow: boolean;
+  showPercentDelta: boolean;
   alert: Alert | undefined;
   onSetAlert: (alert: Alert) => void;
   onClearAlert: () => void;
@@ -49,7 +51,7 @@ export default function PriceCard({
     }
   }, [price]);
 
-  const delta = formatDelta(price, changePercent);
+  const delta = showPercentDelta ? formatPercentDelta(changePercent) : formatDelta(price, changePercent);
   const updated = formatUpdatedAt(updatedAt);
   const high = history.length >= 2 ? Math.max(...history) : null;
   const low = history.length >= 2 ? Math.min(...history) : null;

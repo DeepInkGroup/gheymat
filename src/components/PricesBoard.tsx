@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PriceCard from "./PriceCard";
+import PriceRow from "./PriceRow";
 import SettingsPanel from "./SettingsPanel";
 import { CATEGORY_LABELS, SYMBOL_MAP, SYMBOLS, UNIT_LABELS, type SymbolMeta, type Category } from "@/lib/symbols";
 import type { PriceItem, PricesResult } from "@/lib/baha24";
@@ -28,6 +29,8 @@ export default function PricesBoard() {
   const { pinned, toggle: togglePin } = usePinnedSymbols();
   const { alerts, setAlert, clearAlert } = usePriceAlerts();
   const [showHighLow, setShowHighLow] = useBooleanSetting("gheymat:show-high-low", false);
+  const [showPercentDelta, setShowPercentDelta] = useBooleanSetting("gheymat:show-percent-delta", false);
+  const [compactView, setCompactView] = useBooleanSetting("gheymat:compact-view", false);
   const [history, setHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
@@ -89,6 +92,21 @@ export default function PricesBoard() {
 
   function renderCard(meta: SymbolMeta) {
     const item = byId.get(meta.symbol);
+
+    if (compactView) {
+      return (
+        <PriceRow
+          key={meta.symbol}
+          meta={meta}
+          price={item?.price ?? 0}
+          changePercent={item?.changePercent ?? null}
+          pinned={pinned.has(meta.symbol)}
+          onTogglePin={() => togglePin(meta.symbol)}
+          showPercentDelta={showPercentDelta}
+        />
+      );
+    }
+
     return (
       <PriceCard
         key={meta.symbol}
@@ -100,12 +118,15 @@ export default function PricesBoard() {
         pinned={pinned.has(meta.symbol)}
         onTogglePin={() => togglePin(meta.symbol)}
         showHighLow={showHighLow}
+        showPercentDelta={showPercentDelta}
         alert={alerts[meta.symbol]}
         onSetAlert={(alert) => setAlert(meta.symbol, alert)}
         onClearAlert={() => clearAlert(meta.symbol)}
       />
     );
   }
+
+  const listClassName = compactView ? "flex flex-col gap-2" : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3";
 
   const pinnedSymbols = SYMBOLS.filter((s) => pinned.has(s.symbol) && !hidden.has(s.symbol));
   const nothingVisible =
@@ -151,9 +172,7 @@ export default function PricesBoard() {
         {pinnedSymbols.length > 0 && (
           <section>
             <h2 className="mb-3 text-sm font-semibold text-muted">Pinned</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {pinnedSymbols.map(renderCard)}
-            </div>
+            <div className={listClassName}>{pinnedSymbols.map(renderCard)}</div>
           </section>
         )}
 
@@ -163,7 +182,7 @@ export default function PricesBoard() {
           return (
             <section key={cat}>
               <h2 className="mb-3 text-sm font-semibold text-muted">{CATEGORY_LABELS[cat]}</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{symbols.map(renderCard)}</div>
+              <div className={listClassName}>{symbols.map(renderCard)}</div>
             </section>
           );
         })}
@@ -183,6 +202,10 @@ export default function PricesBoard() {
         onShowAll={showAll}
         showHighLow={showHighLow}
         onToggleHighLow={() => setShowHighLow(!showHighLow)}
+        showPercentDelta={showPercentDelta}
+        onTogglePercentDelta={() => setShowPercentDelta(!showPercentDelta)}
+        compactView={compactView}
+        onToggleCompactView={() => setCompactView(!compactView)}
       />
     </div>
   );
