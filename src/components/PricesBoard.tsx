@@ -11,6 +11,9 @@ const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
 const FILTERS: Array<Category | "all"> = ["all", ...CATEGORIES];
 
 const POLL_MS = 10_000;
+// ~10 minutes of trend at the 10s poll rate. Builds up live during this
+// session — there's no backend history store, so it starts empty on load.
+const MAX_HISTORY_POINTS = 60;
 
 export default function PricesBoard() {
   const [data, setData] = useState<PricesResult | null>(null);
@@ -18,6 +21,7 @@ export default function PricesBoard() {
   const [filter, setFilter] = useState<Category | "all">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { hidden, toggle, showAll } = useHiddenSymbols();
+  const [history, setHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +32,14 @@ export default function PricesBoard() {
         if (!res.ok) throw new Error("bad response");
         const json: PricesResult = await res.json();
         if (!cancelled) {
+          setHistory((prev) => {
+            const next = { ...prev };
+            for (const item of json.items) {
+              const arr = next[item.symbol] ?? [];
+              next[item.symbol] = [...arr, item.price].slice(-MAX_HISTORY_POINTS);
+            }
+            return next;
+          });
           setData(json);
           setError(false);
         }
@@ -96,6 +108,7 @@ export default function PricesBoard() {
                       meta={meta}
                       price={item?.price ?? 0}
                       changePercent={item?.changePercent ?? null}
+                      history={history[meta.symbol] ?? []}
                     />
                   );
                 })}

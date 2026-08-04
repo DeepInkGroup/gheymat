@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
+import Sparkline from "./Sparkline";
 import type { SymbolMeta } from "@/lib/symbols";
 import { UNIT_LABELS } from "@/lib/symbols";
 import { formatDelta, formatPrice } from "@/lib/format";
@@ -10,10 +11,12 @@ export default function PriceCard({
   meta,
   price,
   changePercent,
+  history,
 }: {
   meta: SymbolMeta;
   price: number;
   changePercent: number | null;
+  history: number[];
 }) {
   const prevPrice = useRef(price);
   const [flash, setFlash] = useState<"up" | "down" | null>(null);
@@ -43,14 +46,17 @@ export default function PriceCard({
         </div>
       </div>
 
-      <div
-        className={`num mt-3 text-xs font-semibold ${
-          delta.direction === "up" ? "text-up" : delta.direction === "down" ? "text-down" : "text-muted"
-        }`}
-      >
-        {delta.direction === "up" && "▲ "}
-        {delta.direction === "down" && "▼ "}
-        {delta.text}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <div
+          className={`num text-xs font-semibold ${
+            delta.direction === "up" ? "text-up" : delta.direction === "down" ? "text-down" : "text-muted"
+          }`}
+        >
+          {delta.direction === "up" && "▲ "}
+          {delta.direction === "down" && "▼ "}
+          {delta.text}
+        </div>
+        <Sparkline data={history} direction={delta.direction} />
       </div>
       <div className="num text-xl font-extrabold text-foreground sm:text-2xl">
         {formatPrice(price)}
