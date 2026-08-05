@@ -12,6 +12,7 @@ import { usePinnedSymbols } from "@/lib/usePinnedSymbols";
 import { usePriceAlerts } from "@/lib/usePriceAlerts";
 import { useBooleanSetting } from "@/lib/useBooleanSetting";
 import { useMoveSound } from "@/lib/useMoveSound";
+import { usePushSubscription } from "@/lib/usePushSubscription";
 import { formatPrice } from "@/lib/format";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto", "energy", "purity"];
@@ -43,8 +44,11 @@ export default function PricesBoard() {
   const [compactView, setCompactView] = useBooleanSetting("gheymat:compact-view", false);
   const [soundEnabled, setSoundEnabled] = useBooleanSetting("gheymat:sound-enabled", false);
   const [notifyEnabled, setNotifyEnabled] = useBooleanSetting("gheymat:notify-enabled", false);
+  const [pushEnabled, setPushEnabled] = useBooleanSetting("gheymat:push-enabled", false);
   const [history, setHistory] = useState<Record<string, number[]>>({});
   const playMoveSound = useMoveSound(soundEnabled);
+  const { supported: pushSupported, subscribe: subscribePush, unsubscribe: unsubscribePush, sync: syncPush } =
+    usePushSubscription();
 
   // Read via refs (not the state directly) inside the poll loop below, so
   // loadPrices can stay a stable callback — no interval reset every time a
@@ -161,9 +165,26 @@ export default function PricesBoard() {
     }
   }
 
+  async function handleTogglePush() {
+    if (pushEnabled) {
+      await unsubscribePush();
+      setPushEnabled(false);
+      return;
+    }
+    const ok = await subscribePush(true, alerts);
+    if (ok) setPushEnabled(true);
+  }
+
+  // Keeps the server's copy of alert targets in sync so background push
+  // (which runs without this tab open) can still act on them. A no-op
+  // when push isn't enabled or there's no active subscription yet.
+  useEffect(() => {
+    if (pushEnabled) syncPush(true, alerts);
+  }, [alerts, pushEnabled, syncPush]);
+
   // Fires a one-shot browser notification when a price crosses a set
   // alert target. Only works while this tab/app is open and polling —
-  // there's no server-side push infrastructure behind this.
+  // background push (see usePushSubscription) covers the closed-app case.
   useEffect(() => {
     if (!data) return;
     for (const item of data.items) {
@@ -394,6 +415,9 @@ export default function PricesBoard() {
         onToggleSound={() => setSoundEnabled(!soundEnabled)}
         notifyEnabled={notifyEnabled}
         onToggleNotify={handleToggleNotify}
+        pushSupported={pushSupported}
+        pushEnabled={pushEnabled}
+        onTogglePush={handleTogglePush}
       />
     </div>
   );

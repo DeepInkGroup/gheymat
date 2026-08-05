@@ -1,0 +1,19 @@
+name: Push notification check
+
+# Vercel Hobby's own cron feature only allows once/day (see vercel.json
+# and /api/cron/snapshot), too coarse for anything resembling a "big
+# move" alert — this free GitHub Actions schedule drives the more
+# frequent /api/cron/push-check endpoint instead.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call push-check endpoint
+        run: |
+          curl -sf -X GET "https://gheymat.vercel.app/api/cron/push-check" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

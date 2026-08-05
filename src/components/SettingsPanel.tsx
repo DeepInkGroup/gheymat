@@ -41,6 +41,9 @@ export default function SettingsPanel({
   onToggleSound,
   notifyEnabled,
   onToggleNotify,
+  pushSupported,
+  pushEnabled,
+  onTogglePush,
 }: {
   open: boolean;
   onClose: () => void;
@@ -58,6 +61,9 @@ export default function SettingsPanel({
   onToggleSound: () => void;
   notifyEnabled: boolean;
   onToggleNotify: () => void;
+  pushSupported: boolean;
+  pushEnabled: boolean;
+  onTogglePush: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -120,6 +126,15 @@ export default function SettingsPanel({
               </span>
               <Switch on={notifyEnabled} onClick={onToggleNotify} />
             </label>
+            {pushSupported && (
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-background">
+                <span className="text-sm text-foreground">
+                  Push notifications (background)
+                  <span className="block text-xs text-muted">Alerts you even when the app is closed</span>
+                </span>
+                <Switch on={pushEnabled} onClick={onTogglePush} />
+              </label>
+            )}
           </div>
 
           {CATEGORIES.map((cat) => (

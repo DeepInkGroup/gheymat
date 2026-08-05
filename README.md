@@ -28,7 +28,8 @@ Open [http://localhost:3000](http://localhost:3000).
 - [`data/DatabaseCurrency.json`](data/DatabaseCurrency.json), [`DatabaseGold.json`](data/DatabaseGold.json), [`DatabaseCrypto.json`](data/DatabaseCrypto.json), [`DatabaseEnergy.json`](data/DatabaseEnergy.json), [`DatabaseGoldPurity.json`](data/DatabaseGoldPurity.json) — price history, one JSON file per category (`{ "USD": [{"t":..,"p":..}, ...] }`). Plain files committed to the repo, not a database service — Vercel's serverless filesystem doesn't persist writes between requests, so the only durable way to "save to a local file" here is to have the cron job commit the updated file straight to git, which then redeploys with the new data baked in. [`src/lib/history-db.ts`](src/lib/history-db.ts) reads them from the deployed bundle; [`src/lib/githubRepo.ts`](src/lib/githubRepo.ts) does the actual commit via GitHub's API. [`src/app/api/cron/snapshot/route.ts`](src/app/api/cron/snapshot/route.ts) runs it daily (see `vercel.json`); [`src/app/api/history/[symbol]/route.ts`](<src/app/api/history/[symbol]/route.ts>) serves it to the "History" view on each card. With no `GH_COMMIT_TOKEN` configured, the cron job just skips (files stay empty) instead of breaking.
 - [`src/app/api/movers/route.ts`](src/app/api/movers/route.ts) + [`src/components/MoversStrip.tsx`](src/components/MoversStrip.tsx) — "Today's Movers": current live price vs. each symbol's latest stored history point, ranked by |% change|. Empty (and hidden) until history has at least one snapshot.
 - [`src/lib/useMoveSound.ts`](src/lib/useMoveSound.ts) — an opt-in (off by default) synthesized tone via Web Audio for the single biggest move each poll. Deliberately website-only: `play()` no-ops when `<html>` has the `standalone` class (installed PWA), and its own settings toggle is hidden there too via the `hide-standalone` CSS class.
-- Big move notifications (opt-in, off by default) — reuses the same per-poll biggest-mover detection as the sound cue but with a higher threshold and fires a browser `Notification` instead. Unlike sound, this works in both website and installed-PWA modes — pushes are genuinely useful in an app context.
+- Big move notifications (opt-in, off by default) — reuses the same per-poll biggest-mover detection as the sound cue but with a higher threshold and fires a browser `Notification` instead. Unlike sound, this works in both website and installed-PWA modes — pushes are genuinely useful in an app context. Only fires while a tab/the app is open and polling.
+- [`src/lib/usePushSubscription.ts`](src/lib/usePushSubscription.ts) — background push notifications (opt-in, off by default): unlike the setting above, these arrive even when the app/tab is closed, via the Web Push API. [`src/lib/pushStore.ts`](src/lib/pushStore.ts) persists subscriptions + per-instrument alert targets in Upstash Redis (not git — this data churns often and each subscription URL is somewhat sensitive); [`src/app/api/cron/push-check/route.ts`](src/app/api/cron/push-check/route.ts) is the actual sender, diffing current prices against its last run and pushing for big moves / crossed alerts. Needs `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` — see "Background push notifications" below. Without them, the toggle for it just doesn't appear in settings.
 - Manual refresh — the refresh icon next to search calls the same `loadPrices()` used by the 10s poll, so it's always in sync with live polling rather than a separate code path.
 
 ### API token (optional)
@@ -60,6 +61,20 @@ To enable the "History" view (multi-day chart per instrument) instead of "not en
 4. Check the **Cron Jobs** tab after deploying to confirm `/api/cron/snapshot` is scheduled.
 
 Commits show up authored by whichever GitHub account owns the token — consider a dedicated bot account if you'd rather it not be your personal one. `vercel.json` schedules one snapshot a day (`0 3 * * *`) — that's the hard limit on Vercel's Hobby plan (more frequent expressions **fail the entire deployment**, not just the cron job — this bit us once already). Upgrade to Pro for per-minute cron if you want finer-grained history. History starts empty and fills in one point per day as the cron job runs and commits — there's no way to backfill the past.
+
+### Background push notifications (optional)
+
+Alerts and big-move notifications that arrive even when the app is closed, not just while a tab is open polling. Five things to set up:
+
+1. **VAPID keypair** (identifies this server to push services — not a third-party account):
+   ```bash
+   node -e "console.log(require('web-push').generateVAPIDKeys())"
+   ```
+   Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to the two values, and `NEXT_PUBLIC_VAPID_PUBLIC_KEY` to the **same** public key again (it needs the `NEXT_PUBLIC_` prefix to reach the browser, which needs it to create a subscription — it's meant to be public). Also set `VAPID_SUBJECT` to your site URL or a `mailto:` address.
+2. **Upstash Redis** for subscriptions + alert targets (why not git: this data churns often, and each subscription contains a somewhat sensitive endpoint URL — neither belongs in this repo's public history the way price snapshots do). Sign up free at [upstash.com](https://upstash.com), create a Redis database, and copy `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` from its **REST API** tab.
+3. Add all five env vars above to Vercel → this project → **Settings → Environment Variables**, then redeploy.
+4. **[`.github/workflows/push-check.yml`](.github/workflows/push-check.yml)** pings `/api/cron/push-check` every 5 minutes via a free GitHub Actions schedule — Vercel Hobby's own cron only allows once/day, too coarse for this. Add `CRON_SECRET` (same one from the price-history section above; set one if you skipped that) as a **repository secret**: this repo's Settings → Secrets and variables → Actions → New repository secret.
+5. Nothing else — the "Push notifications (background)" toggle in Settings only appears once `NEXT_PUBLIC_VAPID_PUBLIC_KEY` is set and the browser supports the Push API.
 
 ## PWA on iPhone
 
