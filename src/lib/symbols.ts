@@ -15,7 +15,7 @@ export interface SymbolMeta {
   /** File name (no extension) under /public/crypto for the real coin icon. */
   iconFile?: string;
   /** Which built-in illustration to use (gold category only). */
-  iconKind?: "coin" | "bar" | "globe";
+  iconKind?: "coin" | "bar" | "globe" | "ingot";
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -47,8 +47,8 @@ export const SYMBOLS: SymbolMeta[] = [
   { symbol: "EMAMI1", name: "Emami Coin", category: "gold", unit: "toman", glyph: "E", color: GOLD, iconKind: "coin" },
   { symbol: "GOL18", name: "18k Gold (1g)", category: "gold", unit: "toman", glyph: "Au", color: GOLD, iconKind: "bar" },
   { symbol: "OUNCE", name: "Gold Ounce", category: "gold", unit: "usd", glyph: "Oz", color: GOLD, iconKind: "globe" },
-  { symbol: "XAU", name: "Gold (Spot)", category: "gold", unit: "usd", glyph: "Au", color: GOLD, iconKind: "globe" },
-  { symbol: "XAG", name: "Silver", category: "gold", unit: "usd", glyph: "Ag", color: "#9CA3AF", iconKind: "globe" },
+  { symbol: "XAU", name: "Gold (Spot)", category: "gold", unit: "usd", glyph: "Au", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAG", name: "Silver", category: "gold", unit: "usd", glyph: "Ag", color: "#9CA3AF", iconKind: "ingot" },
   { symbol: "HG", name: "Copper", category: "gold", unit: "usd", glyph: "Cu", color: "#B87333", iconKind: "globe" },
   { symbol: "XPD", name: "Palladium", category: "gold", unit: "usd", glyph: "Pd", color: "#4A6572", iconKind: "globe" },
   { symbol: "AZADI1", name: "Full Azadi Coin", category: "gold", unit: "toman", glyph: "A1", color: GOLD, iconKind: "coin" },

@@ -33,6 +33,21 @@ function BarGlyph() {
   );
 }
 
+function IngotGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path
+        d="M12 1.6 12.9 4.4 15.8 5 12.9 5.6 12 8.4 11.1 5.6 8.2 5 11.1 4.4Z"
+        fill="white"
+        fillOpacity="0.95"
+      />
+      <path d="M8.7 14 10.4 9h3.2l1.7 5H8.7Z" fill="white" fillOpacity="0.95" />
+      <path d="M3 19 4.7 14h4.6L11 19H3Z" fill="white" fillOpacity="0.92" />
+      <path d="M13 19 14.7 14h4.6L21 19H13Z" fill="white" fillOpacity="0.92" />
+    </svg>
+  );
+}
+
 function GlobeGlyph() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
@@ -47,6 +62,7 @@ const GOLD_GLYPHS: Record<NonNullable<SymbolMeta["iconKind"]>, ComponentType> = 
   coin: CoinGlyph,
   bar: BarGlyph,
   globe: GlobeGlyph,
+  ingot: IngotGlyph,
 };
 
 export default function Icon({ meta }: { meta: SymbolMeta }) {
