@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { CATEGORY_LABELS, SYMBOLS, type Category } from "@/lib/symbols";
 
-const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
+const CATEGORIES: Category[] = ["currency", "gold", "crypto", "energy", "purity"];
 
 function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (

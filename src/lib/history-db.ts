@@ -18,14 +18,16 @@ const FILENAMES: Record<Category, string> = {
   currency: "DatabaseCurrency.json",
   gold: "DatabaseGold.json",
   crypto: "DatabaseCrypto.json",
+  energy: "DatabaseEnergy.json",
+  purity: "DatabaseGoldPurity.json",
 };
 
+const ALL_CATEGORIES: Category[] = ["currency", "gold", "crypto", "energy", "purity"];
+
 // GitHub API calls need the full repo-relative path.
-const FILES: Record<Category, string> = {
-  currency: `data/${FILENAMES.currency}`,
-  gold: `data/${FILENAMES.gold}`,
-  crypto: `data/${FILENAMES.crypto}`,
-};
+const FILES: Record<Category, string> = Object.fromEntries(
+  ALL_CATEGORIES.map((c) => [c, `data/${FILENAMES[c]}`])
+) as Record<Category, string>;
 
 // The literal "data" segment (rather than a fully dynamic path) keeps
 // Next's build tracer scoped to just that folder instead of the whole
@@ -65,7 +67,7 @@ export async function recordSnapshot(items: Array<{ symbol: string; price: numbe
   if (!isGithubCommitConfigured()) return false;
 
   const now = Date.now();
-  const categories: Category[] = ["currency", "gold", "crypto"];
+  const categories = ALL_CATEGORIES;
   const current = await Promise.all(categories.map((c) => fetchJsonFile<FileMap>(FILES[c], {})));
   const byCategory = Object.fromEntries(categories.map((c, i) => [c, current[i]])) as Record<Category, FileMap>;
 

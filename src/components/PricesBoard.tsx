@@ -14,7 +14,7 @@ import { useBooleanSetting } from "@/lib/useBooleanSetting";
 import { useMoveSound } from "@/lib/useMoveSound";
 import { formatPrice } from "@/lib/format";
 
-const CATEGORIES: Category[] = ["currency", "gold", "crypto"];
+const CATEGORIES: Category[] = ["currency", "gold", "crypto", "energy", "purity"];
 const FILTERS: Array<Category | "all"> = ["all", ...CATEGORIES];
 
 const POLL_MS = 10_000;

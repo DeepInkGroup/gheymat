@@ -24,6 +24,9 @@ const DEFAULT_HIDDEN = new Set([
   ...SYMBOLS.filter((s) => s.category === "crypto" && s.symbol !== "USDT" && s.symbol !== "BITCOIN").map(
     (s) => s.symbol
   ),
+  // Energy/commodities and gold-purity rates come from metered
+  // third-party APIs — opt-in only, per instrument, via settings.
+  ...SYMBOLS.filter((s) => s.category === "energy" || s.category === "purity").map((s) => s.symbol),
   ...ALWAYS_HIDDEN_BY_DEFAULT,
 ]);
 

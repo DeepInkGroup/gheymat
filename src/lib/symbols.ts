@@ -1,4 +1,4 @@
-export type Category = "currency" | "gold" | "crypto";
+export type Category = "currency" | "gold" | "crypto" | "energy" | "purity";
 
 export type Unit = "toman" | "usd" | "usdt";
 
@@ -14,14 +14,16 @@ export interface SymbolMeta {
   flagCode?: string;
   /** File name (no extension) under /public/crypto for the real coin icon. */
   iconFile?: string;
-  /** Which built-in illustration to use (gold category only). */
-  iconKind?: "coin" | "bar" | "globe" | "ingot";
+  /** Which built-in illustration to use (gold/energy categories only). */
+  iconKind?: "coin" | "bar" | "globe" | "ingot" | "drop";
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   currency: "Currency",
   gold: "Gold & Coins",
   crypto: "Crypto",
+  energy: "Energy & Commodities",
+  purity: "Gold Purity",
 };
 
 export const UNIT_LABELS: Record<Unit, string> = {
@@ -56,6 +58,25 @@ export const SYMBOLS: SymbolMeta[] = [
   { symbol: "AZADI1_4", name: "Quarter Azadi Coin", category: "gold", unit: "toman", glyph: "¼", color: GOLD, iconKind: "coin" },
   { symbol: "AZADI1G", name: "1g Azadi Coin", category: "gold", unit: "toman", glyph: "1g", color: GOLD, iconKind: "coin" },
   { symbol: "MITHQAL", name: "Gold Mithqal", category: "gold", unit: "toman", glyph: "Mq", color: GOLD, iconKind: "bar" },
+
+  { symbol: "WTI_USD", name: "WTI Crude Oil", category: "energy", unit: "usd", glyph: "Oil", color: "#4A3728", iconKind: "drop" },
+  { symbol: "BRENT_CRUDE_USD", name: "Brent Crude Oil", category: "energy", unit: "usd", glyph: "Oil", color: "#2B2118", iconKind: "drop" },
+  { symbol: "NATURAL_GAS_USD", name: "Natural Gas", category: "energy", unit: "usd", glyph: "Gas", color: "#4FA8D8", iconKind: "drop" },
+  { symbol: "DIESEL_USD", name: "Diesel (ULSD)", category: "energy", unit: "usd", glyph: "Dsl", color: "#C9A227", iconKind: "drop" },
+  { symbol: "HEATING_OIL_USD", name: "Heating Oil No. 2", category: "energy", unit: "usd", glyph: "HO", color: "#B5651D", iconKind: "drop" },
+  { symbol: "JET_FUEL_USD", name: "Jet Fuel (Kerosene)", category: "energy", unit: "usd", glyph: "Jet", color: "#5B7B9A", iconKind: "drop" },
+  { symbol: "GASOLINE_USD", name: "RBOB Gasoline", category: "energy", unit: "usd", glyph: "Gas", color: "#D6482F", iconKind: "drop" },
+  { symbol: "COAL_USD", name: "Thermal Coal (Newcastle)", category: "energy", unit: "usd", glyph: "Coal", color: "#2E2E2E", iconKind: "drop" },
+
+  { symbol: "XAU_ounce", name: "Gold 24k (Ounce)", category: "purity", unit: "usd", glyph: "Oz", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_24k", name: "Gold 24k (Gram)", category: "purity", unit: "usd", glyph: "24k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_22k", name: "Gold 22k (Gram)", category: "purity", unit: "usd", glyph: "22k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_21k", name: "Gold 21k (Gram)", category: "purity", unit: "usd", glyph: "21k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_18k", name: "Gold 18k (Gram)", category: "purity", unit: "usd", glyph: "18k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_14k", name: "Gold 14k (Gram)", category: "purity", unit: "usd", glyph: "14k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_12k", name: "Gold 12k (Gram)", category: "purity", unit: "usd", glyph: "12k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_9k", name: "Gold 9k (Gram)", category: "purity", unit: "usd", glyph: "9k", color: GOLD, iconKind: "ingot" },
+  { symbol: "XAU_pound", name: "Gold 24k (Pound)", category: "purity", unit: "usd", glyph: "lb", color: GOLD, iconKind: "ingot" },
 
   { symbol: "USDT", name: "Tether", category: "crypto", unit: "toman", glyph: "₮", color: "#26A17B", iconFile: "usdt" },
   { symbol: "BITCOIN", name: "Bitcoin", category: "crypto", unit: "usdt", glyph: "₿", color: "#F7931A", iconFile: "btc" },
