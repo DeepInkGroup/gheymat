@@ -15,7 +15,6 @@ import { useMoveSound } from "@/lib/useMoveSound";
 import { formatPrice } from "@/lib/format";
 
 const CATEGORIES: Category[] = ["currency", "gold", "crypto", "energy", "purity"];
-const FILTERS: Array<Category | "all"> = ["all", ...CATEGORIES];
 
 const POLL_MS = 10_000;
 // ~10 minutes of trend at the 10s poll rate. Builds up live during this
@@ -183,8 +182,19 @@ export default function PricesBoard() {
     }
   }, [data, alerts, clearAlert]);
 
+  // Categories with nothing currently visible (e.g. Energy/Purity before
+  // the user has opted into any instrument) don't get a tab — keeps the
+  // nav from being cluttered with tabs that just show an empty state.
+  // Reappears the moment the user turns on one instrument in settings.
+  const nonEmptyCategories = CATEGORIES.filter((cat) => SYMBOLS.some((s) => s.category === cat && !hidden.has(s.symbol)));
+  const filters: Array<Category | "all"> = ["all", ...nonEmptyCategories];
+  // If the selected tab's category just emptied out (user hid its last
+  // instrument), fall back to "all" for this render rather than getting
+  // stuck showing an empty-state for a tab that's no longer in the bar.
+  const activeFilter: Category | "all" = filter !== "all" && !nonEmptyCategories.includes(filter) ? "all" : filter;
+
   const byId = new Map<string, PriceItem>((data?.items ?? []).map((i) => [i.symbol, i]));
-  const visibleCategories = filter === "all" ? CATEGORIES : [filter];
+  const visibleCategories = activeFilter === "all" ? CATEGORIES : [activeFilter];
 
   function renderCard(meta: SymbolMeta) {
     const item = byId.get(meta.symbol);
@@ -253,12 +263,12 @@ export default function PricesBoard() {
               className="w-full rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-foreground outline-none placeholder:text-muted"
             />
           ) : (
-            FILTERS.map((f) => (
+            filters.map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                  filter === f
+                  activeFilter === f
                     ? "bg-foreground text-background"
                     : "bg-surface text-muted hover:text-foreground"
                 }`}
@@ -338,7 +348,7 @@ export default function PricesBoard() {
           )
         ) : (
           <>
-            {filter === "all" && <MoversStrip />}
+            {activeFilter === "all" && <MoversStrip />}
 
             {pinnedSymbols.length > 0 && (
               <section>

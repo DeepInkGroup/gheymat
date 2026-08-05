@@ -29,6 +29,7 @@ export default function Footer() {
         </div>
         <div>DeepInk Group - Gheymat</div>
       </div>
+      <span className="col-start-3 justify-self-end">Just Know ...!</span>
     </footer>
   );
 }
