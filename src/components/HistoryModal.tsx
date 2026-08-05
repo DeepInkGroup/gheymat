@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatPrice } from "@/lib/format";
 
 interface HistoryPoint {
@@ -87,7 +88,13 @@ export default function HistoryModal({
           .join(" ")
       : "";
 
-  return (
+  // Rendered via a portal straight into <body>: this modal is opened from
+  // inside a card that gets `backdrop-filter` in standalone/PWA mode,
+  // which creates a new containing block for `position: fixed`
+  // descendants — without the portal, the modal gets trapped inside that
+  // card's bounds instead of covering the viewport. Always safe here
+  // since this component only ever mounts client-side after a click.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
       <button className="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Close" onClick={onClose} />
       <div className="glass safe-bottom relative flex w-full flex-col rounded-t-2xl border border-border bg-surface sm:max-w-md sm:rounded-2xl">
@@ -164,7 +171,8 @@ export default function HistoryModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

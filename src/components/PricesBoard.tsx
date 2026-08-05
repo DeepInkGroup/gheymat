@@ -149,6 +149,17 @@ export default function PricesBoard() {
       }
     }
     setNotifyEnabled(next);
+
+    if (next && typeof Notification !== "undefined" && Notification.permission === "granted") {
+      // Confirms the permission actually works, without waiting for a
+      // real price move to prove it.
+      setTimeout(() => {
+        new Notification("Gheymat notifications are on", {
+          body: "You'll get notified when any instrument moves sharply.",
+          tag: "gheymat-test",
+        });
+      }, 15_000);
+    }
   }
 
   // Fires a one-shot browser notification when a price crosses a set

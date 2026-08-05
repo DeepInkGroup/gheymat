@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPrices } from "@/lib/baha24";
+import { getAllPrices } from "@/lib/allPrices";
 import { isHistoryWriteConfigured, recordSnapshot } from "@/lib/history-db";
 
 /**
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ skipped: "GH_COMMIT_TOKEN not configured" }, { status: 200 });
   }
 
-  const result = await getPrices();
+  const result = await getAllPrices();
   if (result.source !== "live") {
     return NextResponse.json({ skipped: `source was "${result.source}", not live` }, { status: 200 });
   }
