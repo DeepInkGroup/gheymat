@@ -1,5 +1,5 @@
 const OWNER = process.env.GH_REPO_OWNER || "DeepInkGroup";
-const REPO = process.env.GH_REPO_NAME || "gheymat";
+const REPO = process.env.GH_REPO_NAME || "Gheymat";
 const BRANCH = process.env.GH_REPO_BRANCH || "main";
 const API = "https://api.github.com";
 

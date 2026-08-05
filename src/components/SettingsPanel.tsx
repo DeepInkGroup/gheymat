@@ -30,6 +30,7 @@ export default function SettingsPanel({
   hidden,
   onToggle,
   onShowAll,
+  onHideAll,
   showHighLow,
   onToggleHighLow,
   showPercentDelta,
@@ -46,6 +47,7 @@ export default function SettingsPanel({
   hidden: Set<string>;
   onToggle: (symbol: string) => void;
   onShowAll: () => void;
+  onHideAll: () => void;
   showHighLow: boolean;
   onToggleHighLow: () => void;
   showPercentDelta: boolean;
@@ -143,12 +145,18 @@ export default function SettingsPanel({
           ))}
         </div>
 
-        <div className="shrink-0 border-t border-border px-4 py-3">
+        <div className="flex shrink-0 gap-2 border-t border-border px-4 py-3">
           <button
             onClick={onShowAll}
-            className="w-full rounded-xl bg-background py-2 text-sm font-medium text-foreground hover:bg-border/40"
+            className="flex-1 rounded-xl bg-background py-2 text-sm font-medium text-foreground hover:bg-border/40"
           >
             Show all
+          </button>
+          <button
+            onClick={onHideAll}
+            className="flex-1 rounded-xl bg-background py-2 text-sm font-medium text-foreground hover:bg-border/40"
+          >
+            Hide all
           </button>
         </div>
       </div>

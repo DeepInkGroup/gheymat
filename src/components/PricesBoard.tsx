@@ -36,7 +36,7 @@ export default function PricesBoard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { hidden, toggle, showAll } = useHiddenSymbols();
+  const { hidden, toggle, showAll, hideAll } = useHiddenSymbols();
   const { pinned, toggle: togglePin } = usePinnedSymbols();
   const { alerts, setAlert, clearAlert } = usePriceAlerts();
   const [showHighLow, setShowHighLow] = useBooleanSetting("gheymat:show-high-low", false);
@@ -373,6 +373,7 @@ export default function PricesBoard() {
         hidden={hidden}
         onToggle={toggle}
         onShowAll={showAll}
+        onHideAll={hideAll}
         showHighLow={showHighLow}
         onToggleHighLow={() => setShowHighLow(!showHighLow)}
         showPercentDelta={showPercentDelta}

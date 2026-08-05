@@ -27,7 +27,14 @@ const DEFAULT_HIDDEN = new Set([
   ...ALWAYS_HIDDEN_BY_DEFAULT,
 ]);
 
+const ALL_SYMBOLS = new Set(SYMBOLS.map((s) => s.symbol));
+
 export function useHiddenSymbols() {
-  const { value: hidden, toggle, clear } = useStoredSet(STORAGE_KEY, DEFAULT_HIDDEN);
-  return { hidden, toggle, showAll: clear };
+  const { value: hidden, toggle, clear, persist } = useStoredSet(STORAGE_KEY, DEFAULT_HIDDEN);
+  return {
+    hidden,
+    toggle,
+    showAll: clear,
+    hideAll: () => persist(new Set(ALL_SYMBOLS)),
+  };
 }

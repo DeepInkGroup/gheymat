@@ -2,7 +2,7 @@
 
 Live prices for major currencies, gold, coins and crypto — in Toman — sourced from [baha24.com](https://baha24.com). Built with Next.js, installable as a PWA on iPhone with an automatic frosted-glass UI in standalone mode.
 
-**[🔴 Live app](https://gheymat.vercel.app/)** (real, updates every 10s) · **[📄 Project page / showcase](https://deepinkgroup.github.io/gheymat/showcase/)**
+**[🔴 Live app](https://gheymat.vercel.app/)** (real, updates every 10s) · **[📄 Project page / showcase](https://deepinkgroup.github.io/Gheymat/showcase/)**
 
 ## Run locally
 
@@ -66,7 +66,7 @@ npm start
 
 ### About the GitHub Pages project page
 
-GitHub Pages only serves static files — it can't run this app's API proxy route or dynamic icon generation, so it can't host the real app. [`deepinkgroup.github.io/gheymat`](https://deepinkgroup.github.io/gheymat/) redirects straight to the live Vercel app; [`/showcase`](https://deepinkgroup.github.io/gheymat/showcase/) has the project overview and links into the source.
+GitHub Pages only serves static files — it can't run this app's API proxy route or dynamic icon generation, so it can't host the real app. [`deepinkgroup.github.io/Gheymat`](https://deepinkgroup.github.io/Gheymat/) redirects straight to the live Vercel app; [`/showcase`](https://deepinkgroup.github.io/Gheymat/showcase/) has the project overview and links into the source.
 
 ---
 
