@@ -91,6 +91,10 @@ npm run build
 npm start
 ```
 
+### Self-hosting on your own VPS + domain
+
+Want it on your own server instead? See **[DEPLOYMENT.md](DEPLOYMENT.md)** — Docker (`Dockerfile` + `docker-compose.yml`), a Caddy reverse proxy for automatic HTTPS, and replacements for the two things Vercel gives you for free (auto-deploy-on-push and daily cron).
+
 ### About the GitHub Pages project page
 
 GitHub Pages only serves static files — it can't run this app's API proxy route or dynamic icon generation, so it can't host the real app. [`deepinkgroup.github.io/Gheymat`](https://deepinkgroup.github.io/Gheymat/) redirects straight to the live Vercel app; [`/showcase`](https://deepinkgroup.github.io/Gheymat/showcase/) has the project overview and links into the source.

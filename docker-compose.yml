@@ -1,0 +1,16 @@
+services:
+  gheymat:
+    build:
+      context: .
+      args:
+        # Baked into the client bundle at build time — safe to be public,
+        # it's the VAPID *public* key. Everything else in .env is a
+        # runtime secret, passed via env_file below instead.
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Only exposed on localhost — Caddy (or your reverse proxy) is
+      # what the outside world actually talks to. See DEPLOYMENT.md.
+      - "127.0.0.1:3000:3000"

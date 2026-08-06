@@ -1,0 +1,7 @@
+# Scripts run via a shebang on a Linux VPS — CRLF line endings there
+# break the interpreter lookup ("bad interpreter: No such file or
+# directory"), regardless of what line endings the committer's OS uses.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
+docker-compose.yml text eol=lf
