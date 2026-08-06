@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import PriceCard from "./PriceCard";
 import PriceRow from "./PriceRow";
 import SettingsPanel from "./SettingsPanel";
+import ConverterModal from "./ConverterModal";
 import MoversStrip from "./MoversStrip";
 import { CATEGORY_LABELS, SYMBOL_MAP, SYMBOLS, UNIT_LABELS, type SymbolMeta, type Category } from "@/lib/symbols";
 import type { PriceItem, PricesResult } from "@/lib/baha24";
@@ -34,6 +35,7 @@ export default function PricesBoard() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [converterOpen, setConverterOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { hidden, toggle, showAll, hideAll } = useHiddenSymbols();
@@ -343,6 +345,15 @@ export default function PricesBoard() {
             )}
           </button>
           <button
+            onClick={() => setConverterOpen(true)}
+            aria-label="Convert between instruments"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M7 7h13l-3.5-3.5M20 17H7l3.5 3.5" />
+            </svg>
+          </button>
+          <button
             onClick={() => setSettingsOpen(true)}
             aria-label="Customize instruments"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
@@ -418,6 +429,13 @@ export default function PricesBoard() {
         pushSupported={pushSupported}
         pushEnabled={pushEnabled}
         onTogglePush={handleTogglePush}
+      />
+
+      <ConverterModal
+        open={converterOpen}
+        onClose={() => setConverterOpen(false)}
+        items={data?.items ?? []}
+        hidden={hidden}
       />
     </div>
   );
